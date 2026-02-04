@@ -140,6 +140,7 @@
   ];
 
   // Helper function to format phone number for display
+  // Handles various digit lengths and formats them appropriately
   function formatLocalNumber(digits) {
     // Format based on digit count
     if (digits.length === 10) {
@@ -149,7 +150,8 @@
       // Local format: XXX-XXXX
       return digits.replace(/(\d{3})(\d{4})/, '$1-$2');
     } else if (digits.length === 11 && digits.startsWith('1')) {
-      // US with country code: 1-XXX-XXX-XXXX
+      // US with leading '1' - extract just the local 10 digits
+      // This is intentional: when filling a "local number" field, we want just the local part
       return digits.replace(/1(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
     }
     // Return as-is for other lengths
@@ -368,8 +370,9 @@
   }
 
   function matchFieldToData(identifiers, resumeData) {
-    // First, try exact matches (more specific patterns first)
-    // This helps avoid false positives where "phone" matches a country code field
+    // Use priority-based matching to check more specific patterns first.
+    // This helps avoid false positives where generic patterns like "phone" 
+    // might match a country code field before the specific "phoneCountryCode" pattern.
     
     // Build priority order using the pre-defined PRIORITY_PATTERNS
     const priorityOrder = [
