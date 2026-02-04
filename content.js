@@ -498,9 +498,9 @@
     // Each array contains values that should be considered equivalent
     const equivalentGroups = [
       // Gender values
-      ['m', 'male', 'man', 'boy', 'masculine'],
-      ['f', 'female', 'woman', 'girl', 'feminine'],
-      ['nb', 'nonbinary', 'non-binary', 'non binary', 'x', 'other', 'genderqueer'],
+      ['m', 'male', 'man', 'masculine'],
+      ['f', 'female', 'woman', 'feminine'],
+      ['nb', 'nonbinary', 'non-binary', 'non binary', 'x', 'genderqueer'],
       ['prefer not to say', 'prefer not', 'decline', 'decline to state', 'undisclosed', 'not disclosed'],
       // Yes/No values
       ['yes', 'y', 'true', '1'],
