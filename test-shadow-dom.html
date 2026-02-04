@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadow DOM Form Test - Resume AutoFill</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #667eea;
+      margin-top: 30px;
+      font-size: 20px;
+    }
+    .info-box {
+      background: #e8f4f8;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .success {
+      background: #e8f5e9;
+      border-color: #4caf50;
+    }
+    .warning {
+      background: #fff3e0;
+      border-color: #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>🌐 Shadow DOM Form Test</h1>
+    
+    <div class="info-box">
+      <strong>Test Shadow DOM Support:</strong>
+      <p>This page contains form elements inside Shadow DOM, simulating modern job application platforms like SmartRecruiters, Workday, and Greenhouse.</p>
+      <ol>
+        <li>Install the Resume AutoFill extension</li>
+        <li>Load your resume data (or use the sample)</li>
+        <li>Click the extension icon and press "Fill Current Page"</li>
+        <li>Verify that fields inside Shadow DOM are filled correctly!</li>
+      </ol>
+    </div>
+
+    <h2>Regular Form Fields (No Shadow DOM)</h2>
+    <div class="test-section">
+      <p>These fields should work with any form filler:</p>
+      <div style="margin-bottom: 15px;">
+        <label for="regular-email">Email:</label><br>
+        <input type="email" id="regular-email" name="email" style="width: 100%; padding: 8px; margin-top: 5px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label for="regular-phone">Phone:</label><br>
+        <input type="tel" id="regular-phone" name="phone" style="width: 100%; padding: 8px; margin-top: 5px;">
+      </div>
+    </div>
+
+    <h2>Shadow DOM Form Fields</h2>
+    <div class="test-section warning">
+      <p><strong>Challenge:</strong> These fields are inside Shadow DOM. Most form fillers cannot reach them!</p>
+      
+      <!-- Shadow DOM container for basic fields -->
+      <div id="shadow-host-basic"></div>
+      
+      <!-- Shadow DOM container for additional fields -->
+      <div id="shadow-host-work"></div>
+    </div>
+
+    <h2>Nested Shadow DOM</h2>
+    <div class="test-section warning">
+      <p><strong>Extra Challenge:</strong> These fields are nested inside multiple Shadow DOM layers!</p>
+      
+      <!-- Nested Shadow DOM container -->
+      <div id="shadow-host-nested"></div>
+    </div>
+
+    <h2>Shadow DOM with Data Attributes</h2>
+    <div class="test-section warning">
+      <p><strong>Modern Framework Test:</strong> These fields use data-testid and data-qa attributes common in React/Angular apps:</p>
+      
+      <!-- Shadow DOM with data attributes -->
+      <div id="shadow-host-data-attrs"></div>
+    </div>
+
+    <div id="results" style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+      <h3>Test Results</h3>
+      <p>Click "Fill Current Page" in the extension and then check the results below:</p>
+      <button onclick="checkResults()">Check Results</button>
+      <pre id="result-output" style="margin-top: 10px; padding: 10px; background: white; border-radius: 4px;"></pre>
+    </div>
+  </div>
+
+  <script>
+    // Create Shadow DOM for basic fields
+    const basicHost = document.getElementById('shadow-host-basic');
+    const basicShadow = basicHost.attachShadow({ mode: 'open' });
+    basicShadow.innerHTML = `
+      <style>
+        .shadow-form { padding: 15px; background: #f9f9f9; border-radius: 8px; }
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      </style>
+      <div class="shadow-form">
+        <h4>Basic Info (Shadow DOM)</h4>
+        <div class="field">
+          <label for="firstName">First Name:</label>
+          <input type="text" id="firstName" name="firstName" placeholder="Enter first name">
+        </div>
+        <div class="field">
+          <label for="lastName">Last Name:</label>
+          <input type="text" id="lastName" name="lastName" placeholder="Enter last name">
+        </div>
+      </div>
+    `;
+
+    // Create Shadow DOM for work fields
+    const workHost = document.getElementById('shadow-host-work');
+    const workShadow = workHost.attachShadow({ mode: 'open' });
+    workShadow.innerHTML = `
+      <style>
+        .shadow-form { padding: 15px; background: #f0f7ff; border-radius: 8px; margin-top: 15px; }
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      </style>
+      <div class="shadow-form">
+        <h4>Work Experience (Shadow DOM)</h4>
+        <div class="field">
+          <label for="company">Company:</label>
+          <input type="text" id="company" name="company" placeholder="Current company">
+        </div>
+        <div class="field">
+          <label for="position">Position/Title:</label>
+          <input type="text" id="position" name="position" placeholder="Job title">
+        </div>
+      </div>
+    `;
+
+    // Create Nested Shadow DOM
+    const nestedHost = document.getElementById('shadow-host-nested');
+    const nestedShadow1 = nestedHost.attachShadow({ mode: 'open' });
+    nestedShadow1.innerHTML = `
+      <style>
+        .outer { padding: 15px; background: #fff0f0; border-radius: 8px; }
+      </style>
+      <div class="outer">
+        <h4>Outer Shadow DOM Layer</h4>
+        <div id="inner-host"></div>
+      </div>
+    `;
+    
+    // Create inner nested shadow
+    const innerHost = nestedShadow1.getElementById('inner-host');
+    const nestedShadow2 = innerHost.attachShadow({ mode: 'open' });
+    nestedShadow2.innerHTML = `
+      <style>
+        .inner { padding: 15px; background: #ffe0e0; border-radius: 8px; margin-top: 10px; }
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      </style>
+      <div class="inner">
+        <h5>Inner Shadow DOM Layer (Nested)</h5>
+        <div class="field">
+          <label for="university">University:</label>
+          <input type="text" id="university" name="university" placeholder="School name">
+        </div>
+        <div class="field">
+          <label for="degree">Degree:</label>
+          <input type="text" id="degree" name="degree" placeholder="Degree type">
+        </div>
+      </div>
+    `;
+
+    // Create Shadow DOM with data attributes (like modern frameworks)
+    const dataAttrsHost = document.getElementById('shadow-host-data-attrs');
+    const dataAttrsShadow = dataAttrsHost.attachShadow({ mode: 'open' });
+    dataAttrsShadow.innerHTML = `
+      <style>
+        .shadow-form { padding: 15px; background: #f0fff0; border-radius: 8px; }
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      </style>
+      <div class="shadow-form">
+        <h4>Modern Framework Fields (data-testid, data-qa)</h4>
+        <div class="field">
+          <label>LinkedIn Profile:</label>
+          <input type="url" data-testid="linkedin-input" data-qa="input-linkedin" placeholder="LinkedIn URL" aria-label="LinkedIn Profile URL">
+        </div>
+        <div class="field">
+          <label>GitHub Profile:</label>
+          <input type="url" data-testid="github-input" data-automation-id="github-field" placeholder="GitHub URL" aria-label="GitHub Profile URL">
+        </div>
+        <div class="field">
+          <label>Salary Expectation:</label>
+          <input type="text" data-field="salaryExpectation" data-field-name="expectedSalary" placeholder="Expected salary">
+        </div>
+        <div class="field">
+          <label>Work Authorization:</label>
+          <select data-testid="work-authorization-select" data-qa="select-workAuthorization" aria-label="Are you authorized to work?">
+            <option value="">Select...</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+    `;
+
+    // Function to check results
+    function checkResults() {
+      const results = {
+        regular: {
+          email: document.getElementById('regular-email').value,
+          phone: document.getElementById('regular-phone').value
+        },
+        shadowBasic: {
+          firstName: basicShadow.getElementById('firstName').value,
+          lastName: basicShadow.getElementById('lastName').value
+        },
+        shadowWork: {
+          company: workShadow.getElementById('company').value,
+          position: workShadow.getElementById('position').value
+        },
+        nestedShadow: {
+          university: nestedShadow2.getElementById('university').value,
+          degree: nestedShadow2.getElementById('degree').value
+        },
+        dataAttrs: {
+          linkedin: dataAttrsShadow.querySelector('[data-testid="linkedin-input"]').value,
+          github: dataAttrsShadow.querySelector('[data-testid="github-input"]').value,
+          salary: dataAttrsShadow.querySelector('[data-field="salaryExpectation"]').value,
+          workAuth: dataAttrsShadow.querySelector('[data-testid="work-authorization-select"]').value
+        }
+      };
+      
+      let filledCount = 0;
+      let totalCount = 0;
+      
+      for (const section of Object.values(results)) {
+        for (const value of Object.values(section)) {
+          totalCount++;
+          if (value) filledCount++;
+        }
+      }
+      
+      const output = `Results: ${filledCount}/${totalCount} fields filled\n\n` + JSON.stringify(results, null, 2);
+      document.getElementById('result-output').textContent = output;
+      
+      if (filledCount === totalCount) {
+        document.getElementById('result-output').style.backgroundColor = '#e8f5e9';
+      } else if (filledCount > 0) {
+        document.getElementById('result-output').style.backgroundColor = '#fff3e0';
+      } else {
+        document.getElementById('result-output').style.backgroundColor = '#ffebee';
+      }
+    }
+  </script>
+</body>
+</html>

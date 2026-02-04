@@ -10,6 +10,8 @@ Resume AutoFill is a smart Chrome extension that automatically fills job applica
 - Analyzes form fields using multiple identification methods
 - Recognizes 150+ field name variations and patterns
 - Works with most job application forms across the web
+- **Shadow DOM Support**: Traverses Shadow DOM to find form elements in modern web components (e.g., SmartRecruiters, Workday)
+- **Iframe Support**: Searches through same-origin iframes for form elements
 
 ### 2. Comprehensive Data Support
 The extension supports all major resume components:
@@ -54,6 +56,8 @@ The extension uses intelligent pattern matching to identify fields:
    - Checks field name, id, placeholder, aria-label, and title attributes
    - Finds associated labels (by 'for' attribute, parent label, or adjacent text)
    - Considers autocomplete attributes
+   - **Checks data attributes**: data-testid, data-qa, data-automation-id, data-field (for modern UI frameworks)
+   - **Shadow DOM aware**: Searches for labels within Shadow DOM roots
 
 2. **Fuzzy Matching**
    - Matches field identifiers against 100+ common patterns
@@ -78,6 +82,8 @@ The extension triggers appropriate events to ensure forms recognize filled value
 - `input` event for real-time validation
 - `change` event for form updates
 - `blur` event for field completion
+- Uses native value setters for React-controlled forms
+- Dispatches keyboard events for edge cases
 
 ### Visual Feedback
 Fields briefly highlight in green when filled, making it easy to verify what was populated.
@@ -199,6 +205,7 @@ Total: ~45KB uncompressed
 3. **Review Required**: Always review filled forms before submitting
 4. **Custom Fields**: Highly specialized fields may not be automatically filled
 5. **CAPTCHAs**: Cannot bypass CAPTCHAs or security measures (by design)
+6. **Cross-origin Iframes**: Cannot access forms inside cross-origin iframes due to browser security
 
 ## Future Enhancements (Not Included)
 
