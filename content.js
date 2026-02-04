@@ -219,7 +219,7 @@
   function matchFieldToData(identifiers, resumeData) {
     // Try to match field identifiers with resume data patterns
     // Find the best match by preferring longer/more specific pattern matches
-    let bestMatch = null;
+    let bestMatchKey = null;
     let bestMatchScore = 0;
     
     for (const [dataKey, patterns] of Object.entries(FIELD_PATTERNS)) {
@@ -238,17 +238,22 @@
           }
           
           if (score > bestMatchScore) {
-            const value = getResumeValue(dataKey, resumeData);
-            if (value !== null && value !== undefined) {
-              bestMatch = value;
-              bestMatchScore = score;
-            }
+            bestMatchKey = dataKey;
+            bestMatchScore = score;
           }
         }
       }
     }
     
-    return bestMatch;
+    // Get the resume value only once after finding the best match
+    if (bestMatchKey !== null) {
+      const value = getResumeValue(bestMatchKey, resumeData);
+      if (value !== null && value !== undefined) {
+        return value;
+      }
+    }
+    
+    return null;
   }
 
   function getResumeValue(key, resumeData) {
