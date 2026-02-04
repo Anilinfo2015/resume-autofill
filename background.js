@@ -1,10 +1,13 @@
 // Background service worker for the Chrome extension
+// Note: Uses chrome.storage.local instead of chrome.storage.sync to avoid
+// quota limits (sync has 8KB per-item limit). This means data won't sync
+// across devices, but allows for larger resume data storage.
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Resume AutoFill extension installed');
   
   // Set default settings or perform initialization
-  chrome.storage.sync.get(['resumeData'], (result) => {
+  chrome.storage.local.get(['resumeData'], (result) => {
     if (!result.resumeData) {
       console.log('No resume data found. Please load your resume data.');
     } else {
@@ -23,7 +26,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // Listen for messages from popup or content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getResumeData') {
-    chrome.storage.sync.get(['resumeData'], (result) => {
+    chrome.storage.local.get(['resumeData'], (result) => {
       sendResponse({ data: result.resumeData });
     });
     return true; // Keep message channel open for async response
@@ -33,7 +36,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Context menu click handler
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'fillForm') {
-    chrome.storage.sync.get(['resumeData'], (result) => {
+    chrome.storage.local.get(['resumeData'], (result) => {
       if (result.resumeData) {
         chrome.tabs.sendMessage(tab.id, {
           action: 'fillForm',
