@@ -7,6 +7,7 @@
     "phone": "+1-555-123-4567",
     "mobile": "+1-555-123-4567",
     "address": "123 Main Street",
+    "addressLine2": "Apt 4B",
     "city": "San Francisco",
     "state": "CA",
     "zipCode": "94102",
@@ -16,7 +17,8 @@
     "linkedin": "https://linkedin.com/in/johndoe",
     "website": "https://johndoe.com",
     "portfolio": "https://portfolio.johndoe.com",
-    "github": "https://github.com/johndoe"
+    "github": "https://github.com/johndoe",
+    "dateOfBirth": "1990-05-15"
   },
   "summary": "Experienced software engineer with 8+ years of expertise in full-stack development, cloud architecture, and team leadership. Proven track record of delivering scalable solutions and mentoring junior developers.",
   "workExperience": [
@@ -115,5 +117,58 @@
       "proficiency": "Intermediate"
     }
   ],
-  "references": "Available upon request"
+  "references": [
+    {
+      "name": "Jane Smith",
+      "title": "Engineering Manager",
+      "relationship": "Former Manager",
+      "company": "Tech Corp",
+      "phone": "+1-555-987-6543",
+      "email": "jane.smith@techcorp.com"
+    },
+    {
+      "name": "Bob Johnson",
+      "title": "Senior Developer",
+      "relationship": "Former Colleague",
+      "company": "StartUp Inc",
+      "phone": "+1-555-456-7890",
+      "email": "bob.johnson@startup.com"
+    }
+  ],
+  "eligibility": {
+    "workAuthorization": "Yes",
+    "authorizedToWork": "Yes",
+    "requiresSponsorship": "No",
+    "visaSponsorship": "No",
+    "citizenship": "US Citizen",
+    "citizenshipStatus": "US Citizen",
+    "driversLicense": "Yes",
+    "hasDriversLicense": "Yes"
+  },
+  "preferences": {
+    "salaryExpectation": "$150,000 - $180,000",
+    "expectedSalary": "$150,000 - $180,000",
+    "desiredSalary": "$150,000 - $180,000",
+    "currentSalary": "$140,000",
+    "availableStartDate": "2 weeks notice",
+    "availability": "2 weeks",
+    "noticePeriod": "2 weeks",
+    "willingToRelocate": "Yes",
+    "relocate": "Yes",
+    "willingToTravel": "Up to 25%",
+    "travel": "Up to 25%",
+    "yearsOfExperience": "8+ years"
+  },
+  "emergencyContact": {
+    "name": "Mary Doe",
+    "phone": "+1-555-111-2222",
+    "relationship": "Spouse"
+  },
+  "diversity": {
+    "gender": "Prefer not to say",
+    "ethnicity": "Prefer not to say",
+    "veteranStatus": "I am not a veteran",
+    "disabilityStatus": "I do not have a disability"
+  },
+  "coverLetter": "Dear Hiring Manager,\n\nI am excited to apply for this position. With over 8 years of experience in software engineering and a proven track record of delivering scalable solutions, I am confident I would be a valuable addition to your team.\n\nMy experience at Tech Corp has equipped me with strong leadership skills and technical expertise in full-stack development, cloud architecture, and agile methodologies.\n\nI look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\nJohn Doe"
 }

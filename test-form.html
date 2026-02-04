@@ -84,6 +84,12 @@
       padding: 15px;
       margin-bottom: 20px;
     }
+    .help-text {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -254,6 +260,139 @@
       <div class="form-group">
         <label for="coverLetter">Cover Letter (Optional)</label>
         <textarea id="coverLetter" name="coverLetter" placeholder="Why are you interested in this position?"></textarea>
+      </div>
+
+      <h2>Work Authorization & Eligibility</h2>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="workAuthorization">Are you authorized to work in the US?</label>
+          <select id="workAuthorization" name="workAuthorization">
+            <option value="">Select...</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="visaSponsorship">Will you require sponsorship?</label>
+          <select id="visaSponsorship" name="visaSponsorship">
+            <option value="">Select...</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+
+      <h2>Salary & Availability</h2>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="salaryExpectation">Salary Expectation</label>
+          <input type="text" id="salaryExpectation" name="salaryExpectation" placeholder="e.g., $100,000 - $120,000">
+        </div>
+        
+        <div class="form-group">
+          <label for="noticePeriod">Notice Period</label>
+          <input type="text" id="noticePeriod" name="noticePeriod" placeholder="e.g., 2 weeks">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="availableStartDate">Available Start Date</label>
+          <input type="text" id="availableStartDate" name="availableStartDate" placeholder="e.g., 2 weeks notice or specific date">
+        </div>
+        
+        <div class="form-group">
+          <label for="yearsOfExperience">Years of Experience</label>
+          <input type="text" id="yearsOfExperience" name="yearsOfExperience" placeholder="e.g., 5+ years">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="willingToRelocate">Willing to Relocate?</label>
+          <select id="willingToRelocate" name="willingToRelocate">
+            <option value="">Select...</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="willingToTravel">Willing to Travel?</label>
+          <input type="text" id="willingToTravel" name="willingToTravel" placeholder="e.g., Up to 25%">
+        </div>
+      </div>
+
+      <h2>References</h2>
+
+      <div class="form-group">
+        <label for="referenceName">Reference Name</label>
+        <input type="text" id="referenceName" name="referenceName" placeholder="e.g., Jane Smith">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="referencePhone">Reference Phone</label>
+          <input type="tel" id="referencePhone" name="referencePhone" placeholder="e.g., +1-555-987-6543">
+        </div>
+        
+        <div class="form-group">
+          <label for="referenceEmail">Reference Email</label>
+          <input type="email" id="referenceEmail" name="referenceEmail" placeholder="e.g., jane@company.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="referenceRelationship">Relationship</label>
+        <input type="text" id="referenceRelationship" name="referenceRelationship" placeholder="e.g., Former Manager">
+      </div>
+
+      <h2>Emergency Contact</h2>
+
+      <div class="form-group">
+        <label for="emergencyContactName">Emergency Contact Name</label>
+        <input type="text" id="emergencyContactName" name="emergencyContactName" placeholder="e.g., Mary Doe">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="emergencyContactPhone">Emergency Contact Phone</label>
+          <input type="tel" id="emergencyContactPhone" name="emergencyContactPhone" placeholder="e.g., +1-555-111-2222">
+        </div>
+        
+        <div class="form-group">
+          <label for="emergencyContactRelationship">Relationship</label>
+          <input type="text" id="emergencyContactRelationship" name="emergencyContactRelationship" placeholder="e.g., Spouse">
+        </div>
+      </div>
+
+      <h2>Voluntary Self-Identification (Optional)</h2>
+      <p class="help-text">This information is optional and will not affect your application.</p>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <select id="gender" name="gender">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Non-binary">Non-binary</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="veteranStatus">Veteran Status</label>
+          <select id="veteranStatus" name="veteranStatus">
+            <option value="">Select...</option>
+            <option value="I am a veteran">I am a veteran</option>
+            <option value="I am not a veteran">I am not a veteran</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
       </div>
 
       <button type="submit">Submit Application</button>

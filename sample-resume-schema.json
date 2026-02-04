@@ -45,6 +45,11 @@
           "description": "Street address",
           "examples": ["123 Main Street"]
         },
+        "addressLine2": {
+          "type": "string",
+          "description": "Address line 2 (apartment, suite, unit, etc.)",
+          "examples": ["Apt 4B"]
+        },
         "city": {
           "type": "string",
           "description": "City of residence",
@@ -98,6 +103,11 @@
           "format": "uri",
           "description": "GitHub profile URL",
           "examples": ["https://github.com/johndoe"]
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Date of birth in YYYY-MM-DD format",
+          "examples": ["1990-05-15"]
         }
       },
       "required": ["firstName", "lastName", "email", "phone"]
@@ -302,9 +312,235 @@
       }
     },
     "references": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "References information (typically 'Available upon request' or contact details)",
+          "examples": ["Available upon request"]
+        },
+        {
+          "type": "array",
+          "description": "List of professional references with contact details",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the reference",
+                "examples": ["Jane Smith"]
+              },
+              "title": {
+                "type": "string",
+                "description": "Title/position of the reference",
+                "examples": ["Engineering Manager"]
+              },
+              "relationship": {
+                "type": "string",
+                "description": "Relationship to the candidate",
+                "examples": ["Former Manager", "Former Colleague"]
+              },
+              "company": {
+                "type": "string",
+                "description": "Company where the reference works",
+                "examples": ["Tech Corp"]
+              },
+              "phone": {
+                "type": "string",
+                "description": "Phone number of the reference",
+                "examples": ["+1-555-987-6543"]
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "Email address of the reference",
+                "examples": ["jane.smith@techcorp.com"]
+              }
+            },
+            "required": ["name"]
+          }
+        }
+      ]
+    },
+    "eligibility": {
+      "type": "object",
+      "description": "Work authorization and eligibility information - addresses common job application questions",
+      "properties": {
+        "workAuthorization": {
+          "type": "string",
+          "description": "Whether authorized to work in the target country",
+          "enum": ["Yes", "No"],
+          "examples": ["Yes"]
+        },
+        "authorizedToWork": {
+          "type": "string",
+          "description": "Alternative field for work authorization",
+          "enum": ["Yes", "No"],
+          "examples": ["Yes"]
+        },
+        "requiresSponsorship": {
+          "type": "string",
+          "description": "Whether visa sponsorship is required now or in the future",
+          "enum": ["Yes", "No"],
+          "examples": ["No"]
+        },
+        "visaSponsorship": {
+          "type": "string",
+          "description": "Alternative field for sponsorship requirement",
+          "enum": ["Yes", "No"],
+          "examples": ["No"]
+        },
+        "citizenship": {
+          "type": "string",
+          "description": "Citizenship status",
+          "examples": ["US Citizen", "Permanent Resident", "Work Visa"]
+        },
+        "citizenshipStatus": {
+          "type": "string",
+          "description": "Alternative field for citizenship",
+          "examples": ["US Citizen"]
+        },
+        "driversLicense": {
+          "type": "string",
+          "description": "Whether the candidate has a valid driver's license",
+          "enum": ["Yes", "No"],
+          "examples": ["Yes"]
+        },
+        "hasDriversLicense": {
+          "type": "string",
+          "description": "Alternative field for driver's license",
+          "enum": ["Yes", "No"],
+          "examples": ["Yes"]
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "description": "Job preferences including salary, availability, and other requirements - addresses common pain points in job applications",
+      "properties": {
+        "salaryExpectation": {
+          "type": "string",
+          "description": "Expected/desired salary range",
+          "examples": ["$150,000 - $180,000", "$120K-$150K"]
+        },
+        "expectedSalary": {
+          "type": "string",
+          "description": "Alternative field for salary expectation",
+          "examples": ["$150,000 - $180,000"]
+        },
+        "desiredSalary": {
+          "type": "string",
+          "description": "Alternative field for salary expectation",
+          "examples": ["$150,000 - $180,000"]
+        },
+        "currentSalary": {
+          "type": "string",
+          "description": "Current salary (optional - some jurisdictions prohibit asking this)",
+          "examples": ["$140,000"]
+        },
+        "availableStartDate": {
+          "type": "string",
+          "description": "When the candidate can start a new position",
+          "examples": ["2 weeks notice", "Immediately", "2024-03-01"]
+        },
+        "availability": {
+          "type": "string",
+          "description": "Alternative field for available start date",
+          "examples": ["2 weeks"]
+        },
+        "noticePeriod": {
+          "type": "string",
+          "description": "Required notice period at current employer",
+          "examples": ["2 weeks", "1 month", "30 days"]
+        },
+        "notice": {
+          "type": "string",
+          "description": "Alternative field for notice period",
+          "examples": ["2 weeks"]
+        },
+        "willingToRelocate": {
+          "type": "string",
+          "description": "Whether the candidate is willing to relocate",
+          "enum": ["Yes", "No", "Maybe"],
+          "examples": ["Yes"]
+        },
+        "relocate": {
+          "type": "string",
+          "description": "Alternative field for relocation willingness",
+          "examples": ["Yes"]
+        },
+        "willingToTravel": {
+          "type": "string",
+          "description": "Travel willingness and percentage",
+          "examples": ["Up to 25%", "Up to 50%", "No", "Yes"]
+        },
+        "travel": {
+          "type": "string",
+          "description": "Alternative field for travel willingness",
+          "examples": ["Up to 25%"]
+        },
+        "yearsOfExperience": {
+          "type": "string",
+          "description": "Total years of professional experience",
+          "examples": ["8+ years", "5 years", "10+"]
+        }
+      }
+    },
+    "emergencyContact": {
+      "type": "object",
+      "description": "Emergency contact information - commonly required in job applications",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the emergency contact",
+          "examples": ["Mary Doe"]
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the emergency contact",
+          "examples": ["+1-555-111-2222"]
+        },
+        "relationship": {
+          "type": "string",
+          "description": "Relationship to the candidate",
+          "examples": ["Spouse", "Parent", "Sibling"]
+        }
+      }
+    },
+    "diversity": {
+      "type": "object",
+      "description": "Voluntary self-identification information - optional EEO/diversity data commonly asked in US applications",
+      "properties": {
+        "gender": {
+          "type": "string",
+          "description": "Gender identity",
+          "examples": ["Male", "Female", "Non-binary", "Prefer not to say"]
+        },
+        "ethnicity": {
+          "type": "string",
+          "description": "Ethnic background",
+          "examples": ["White", "Black or African American", "Asian", "Hispanic or Latino", "Prefer not to say"]
+        },
+        "race": {
+          "type": "string",
+          "description": "Alternative field for ethnicity",
+          "examples": ["Prefer not to say"]
+        },
+        "veteranStatus": {
+          "type": "string",
+          "description": "Veteran status",
+          "examples": ["I am a veteran", "I am not a veteran", "Prefer not to say"]
+        },
+        "disabilityStatus": {
+          "type": "string",
+          "description": "Disability status",
+          "examples": ["I have a disability", "I do not have a disability", "Prefer not to say"]
+        }
+      }
+    },
+    "coverLetter": {
       "type": "string",
-      "description": "References information (typically 'Available upon request' or contact details)",
-      "examples": ["Available upon request"]
+      "description": "Cover letter content that can be auto-filled into cover letter text fields",
+      "examples": ["Dear Hiring Manager,\n\nI am excited to apply for this position..."]
     }
   },
   "required": ["personal"]
