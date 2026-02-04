@@ -170,5 +170,6 @@
     "veteranStatus": "I am not a veteran",
     "disabilityStatus": "I do not have a disability"
   },
-  "coverLetter": "Dear Hiring Manager,\n\nI am excited to apply for this position. With over 8 years of experience in software engineering and a proven track record of delivering scalable solutions, I am confident I would be a valuable addition to your team.\n\nMy experience at Tech Corp has equipped me with strong leadership skills and technical expertise in full-stack development, cloud architecture, and agile methodologies.\n\nI look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\nJohn Doe"
+  "coverLetter": "Dear Hiring Manager,\n\nI am excited to apply for this position. With over 8 years of experience in software engineering and a proven track record of delivering scalable solutions, I am confident I would be a valuable addition to your team.\n\nMy experience at Tech Corp has equipped me with strong leadership skills and technical expertise in full-stack development, cloud architecture, and agile methodologies.\n\nI look forward to the opportunity to discuss how my skills and experience align with your needs.\n\nBest regards,\nJohn Doe",
+  "hobbiesInterests": "In my free time, I enjoy hiking and exploring nature trails, contributing to open-source projects, playing chess competitively, and volunteering at local coding bootcamps to mentor aspiring developers. I'm also passionate about photography and have won several amateur photography contests."
 }

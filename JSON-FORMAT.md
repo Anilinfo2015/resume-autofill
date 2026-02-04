@@ -115,7 +115,8 @@ Copy and fill in this template:
     "veteranStatus": "",
     "disabilityStatus": ""
   },
-  "coverLetter": ""
+  "coverLetter": "",
+  "hobbiesInterests": ""
 }
 ```
 
@@ -254,6 +255,14 @@ Optional self-identification information (commonly asked in US applications):
 
 ```json
 "coverLetter": "Dear Hiring Manager,\n\nI am excited to apply..."
+```
+
+### Hobbies & Interests (String) - NEW!
+
+For fields asking "Tell us a bit about yourself" or questions about hobbies, interests, or achievements outside of work/education:
+
+```json
+"hobbiesInterests": "In my free time, I enjoy hiking, contributing to open-source projects, and volunteering at local coding bootcamps."
 ```
 
 ### Summary (String)
