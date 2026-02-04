@@ -9,6 +9,11 @@
       "type": "object",
       "description": "Personal and contact information of the candidate",
       "properties": {
+        "title": {
+          "type": "string",
+          "description": "Salutation/honorific/title prefix (Mr, Mrs, Miss, Ms, Dr, etc.)",
+          "examples": ["Mr", "Mrs", "Miss", "Ms", "Dr", "Prof"]
+        },
         "firstName": {
           "type": "string",
           "description": "First name of the candidate",
