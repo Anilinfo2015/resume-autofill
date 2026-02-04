@@ -160,22 +160,25 @@
   }
 
   // Helper function to detect if a select dropdown is a salutation/title dropdown
+  // Minimum number of salutation options required to consider it a salutation dropdown
+  const MIN_SALUTATION_MATCHES = 2;
+  
   function isSalutationDropdown(selectElement) {
     const salutationValues = ['mr', 'mrs', 'miss', 'ms', 'dr', 'prof', 'sir', 'madam'];
     let salutationMatches = 0;
     
     for (let option of selectElement.options) {
-      const optionValue = option.value.toLowerCase().trim();
-      const optionText = option.text.toLowerCase().trim();
+      // Normalize option values by removing periods and converting to lowercase
+      const optionValue = option.value.toLowerCase().trim().replace('.', '');
+      const optionText = option.text.toLowerCase().trim().replace('.', '');
       
-      if (salutationValues.some(s => optionValue === s || optionText === s || 
-          optionValue.replace('.', '') === s || optionText.replace('.', '') === s)) {
+      if (salutationValues.some(s => optionValue === s || optionText === s)) {
         salutationMatches++;
       }
     }
     
-    // If at least 2 salutation options are found, it's likely a salutation dropdown
-    return salutationMatches >= 2;
+    // A dropdown with at least MIN_SALUTATION_MATCHES salutation options is considered a salutation dropdown
+    return salutationMatches >= MIN_SALUTATION_MATCHES;
   }
 
   function getFieldIdentifiers(element) {
