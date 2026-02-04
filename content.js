@@ -97,7 +97,7 @@
     summary: ['summary', 'objective', 'about', 'bio', 'description', 'profile', 'professionalsummary', 'careerobjective'],
     skills: ['skill', 'expertise', 'competenc', 'proficienc', 'technicalskills', 'keyskills'],
     coverLetter: ['cover', 'letter', 'motivation', 'coverletter', 'motivationletter'],
-    hobbiesInterests: ['hobbies', 'interests', 'hobby', 'interest', 'achievements outside', 'outside of work', 'bit about yourself', 'about yourself', 'personal interests', 'personalinterests', 'extracurricular', 'activities', 'passions', 'leisure', 'freetime', 'spare time'],
+    hobbiesInterests: ['hobbies', 'interests', 'hobby', 'interest', 'achievements outside', 'outside of work', 'bit about yourself', 'about yourself', 'personal interests', 'personalinterests', 'extracurricular', 'passions', 'leisure', 'freetime', 'spare time'],
     
     // Social Security / ID (handled carefully)
     ssn: ['ssn', 'socialsecurity', 'social security'],
