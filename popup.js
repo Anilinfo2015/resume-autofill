@@ -19,9 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
       reader.onload = function(event) {
         try {
           const resumeData = JSON.parse(event.target.result);
-          saveResumeData(resumeData);
-          showStatus('Resume data loaded successfully!', 'success');
-          loadCurrentData();
+          saveResumeData(resumeData).then(() => {
+            showStatus('Resume data loaded successfully!', 'success');
+            loadCurrentData();
+          }).catch(error => {
+            showStatus('Error saving resume data: ' + error.message, 'error');
+          });
         } catch (error) {
           showStatus('Error parsing JSON file: ' + error.message, 'error');
         }
@@ -34,8 +37,8 @@ document.addEventListener('DOMContentLoaded', function() {
   loadSampleBtn.addEventListener('click', function() {
     fetch('sample-resume.json')
       .then(response => response.json())
+      .then(data => saveResumeData(data).then(() => data))
       .then(data => {
-        saveResumeData(data);
         showStatus('Sample resume loaded successfully!', 'success');
         loadCurrentData();
       })
@@ -83,7 +86,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Helper functions
   function saveResumeData(data) {
-    chrome.storage.sync.set({resumeData: data});
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.set({resumeData: data}, function() {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve();
+        }
+      });
+    });
   }
 
   function loadCurrentData(showCacheMessage = false) {
