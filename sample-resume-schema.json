@@ -1,0 +1,311 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Anilinfo2015/resume-autofill/sample-resume-schema.json",
+  "title": "Resume AutoFill JSON Schema",
+  "description": "Schema for resume data used by the Resume AutoFill Chrome extension. Use this schema to generate valid JSON from resume text or documents.",
+  "type": "object",
+  "properties": {
+    "personal": {
+      "type": "object",
+      "description": "Personal and contact information of the candidate",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "description": "First name of the candidate",
+          "examples": ["John"]
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name/surname of the candidate",
+          "examples": ["Doe"]
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the candidate (optional, can be derived from firstName + lastName)",
+          "examples": ["John Doe"]
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Primary email address",
+          "examples": ["john.doe@example.com"]
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary phone number",
+          "examples": ["+1-555-123-4567"]
+        },
+        "mobile": {
+          "type": "string",
+          "description": "Mobile phone number (can be same as phone)",
+          "examples": ["+1-555-123-4567"]
+        },
+        "address": {
+          "type": "string",
+          "description": "Street address",
+          "examples": ["123 Main Street"]
+        },
+        "city": {
+          "type": "string",
+          "description": "City of residence",
+          "examples": ["San Francisco"]
+        },
+        "state": {
+          "type": "string",
+          "description": "State or province",
+          "examples": ["CA", "California"]
+        },
+        "zipCode": {
+          "type": "string",
+          "description": "ZIP or postal code",
+          "examples": ["94102"]
+        },
+        "zip": {
+          "type": "string",
+          "description": "ZIP code (alternative field name for zipCode)",
+          "examples": ["94102"]
+        },
+        "postalCode": {
+          "type": "string",
+          "description": "Postal code (alternative field name for zipCode)",
+          "examples": ["94102"]
+        },
+        "country": {
+          "type": "string",
+          "description": "Country of residence",
+          "examples": ["United States", "USA"]
+        },
+        "linkedin": {
+          "type": "string",
+          "format": "uri",
+          "description": "LinkedIn profile URL",
+          "examples": ["https://linkedin.com/in/johndoe"]
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Personal website URL",
+          "examples": ["https://johndoe.com"]
+        },
+        "portfolio": {
+          "type": "string",
+          "format": "uri",
+          "description": "Portfolio website URL",
+          "examples": ["https://portfolio.johndoe.com"]
+        },
+        "github": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHub profile URL",
+          "examples": ["https://github.com/johndoe"]
+        }
+      },
+      "required": ["firstName", "lastName", "email", "phone"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "Professional summary or objective statement describing the candidate's experience and career goals",
+      "examples": ["Experienced software engineer with 8+ years of expertise in full-stack development, cloud architecture, and team leadership. Proven track record of delivering scalable solutions and mentoring junior developers."]
+    },
+    "workExperience": {
+      "type": "array",
+      "description": "List of work experiences, ordered from most recent to oldest",
+      "items": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string",
+            "description": "Name of the employer/company",
+            "examples": ["Tech Corp", "StartUp Inc"]
+          },
+          "position": {
+            "type": "string",
+            "description": "Job title/position held",
+            "examples": ["Senior Software Engineer", "Software Engineer"]
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title (alternative field name for position)",
+            "examples": ["Senior Software Engineer"]
+          },
+          "jobTitle": {
+            "type": "string",
+            "description": "Job title (alternative field name for position)",
+            "examples": ["Senior Software Engineer"]
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "Start date in YYYY-MM format",
+            "examples": ["2020-01", "2016-06"]
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^(\\d{4}-(0[1-9]|1[0-2])|Present)$",
+            "description": "End date in YYYY-MM format, or 'Present' if currently employed",
+            "examples": ["Present", "2019-12"]
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Whether this is the current job (true if currently employed here)",
+            "examples": [true, false]
+          },
+          "location": {
+            "type": "string",
+            "description": "Location of the job (city, state or city, country)",
+            "examples": ["San Francisco, CA", "Palo Alto, CA"]
+          },
+          "description": {
+            "type": "string",
+            "description": "Brief description of the role, achievements, and responsibilities",
+            "examples": ["Led development of microservices architecture serving 10M+ users. Mentored team of 5 junior engineers. Improved system performance by 40%."]
+          },
+          "responsibilities": {
+            "type": "array",
+            "description": "List of key responsibilities and achievements (optional, can be included in description instead)",
+            "items": {
+              "type": "string"
+            },
+            "examples": [["Designed and implemented RESTful APIs", "Led code reviews and architectural decisions", "Mentored junior developers"]]
+          }
+        },
+        "required": ["company", "position", "startDate"]
+      }
+    },
+    "education": {
+      "type": "array",
+      "description": "List of educational qualifications, ordered from highest/most recent to oldest",
+      "items": {
+        "type": "object",
+        "properties": {
+          "school": {
+            "type": "string",
+            "description": "Name of the educational institution",
+            "examples": ["Stanford University", "UC Berkeley"]
+          },
+          "university": {
+            "type": "string",
+            "description": "University name (alternative field name for school)",
+            "examples": ["Stanford University"]
+          },
+          "degree": {
+            "type": "string",
+            "description": "Degree obtained (e.g., Bachelor of Science, Master of Arts, PhD)",
+            "examples": ["Master of Science", "Bachelor of Science"]
+          },
+          "field": {
+            "type": "string",
+            "description": "Field of study",
+            "examples": ["Computer Science", "Computer Engineering"]
+          },
+          "fieldOfStudy": {
+            "type": "string",
+            "description": "Field of study (alternative field name for field)",
+            "examples": ["Computer Science"]
+          },
+          "major": {
+            "type": "string",
+            "description": "Major (alternative field name for field)",
+            "examples": ["Computer Science"]
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "Start date in YYYY-MM format",
+            "examples": ["2014-09", "2010-09"]
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "End date in YYYY-MM format",
+            "examples": ["2016-05", "2014-05"]
+          },
+          "graduationDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "Graduation date in YYYY-MM format (can be same as endDate)",
+            "examples": ["2016-05"]
+          },
+          "gpa": {
+            "type": "string",
+            "description": "Grade Point Average",
+            "examples": ["3.8", "3.6"]
+          },
+          "location": {
+            "type": "string",
+            "description": "Location of the institution",
+            "examples": ["Stanford, CA", "Berkeley, CA"]
+          }
+        },
+        "required": ["school", "degree"]
+      }
+    },
+    "skills": {
+      "type": "array",
+      "description": "List of technical and professional skills",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["JavaScript", "Python", "React", "Node.js", "AWS", "Docker", "Kubernetes", "PostgreSQL", "MongoDB", "Git"]]
+    },
+    "certifications": {
+      "type": "array",
+      "description": "List of professional certifications",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the certification",
+            "examples": ["AWS Certified Solutions Architect"]
+          },
+          "issuer": {
+            "type": "string",
+            "description": "Organization that issued the certification",
+            "examples": ["Amazon Web Services"]
+          },
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "description": "Date certification was obtained in YYYY-MM format",
+            "examples": ["2021-03"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to verify the certification (optional)",
+            "examples": ["https://aws.amazon.com/certification/"]
+          }
+        },
+        "required": ["name", "issuer"]
+      }
+    },
+    "languages": {
+      "type": "array",
+      "description": "List of spoken/written languages and proficiency levels",
+      "items": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Name of the language",
+            "examples": ["English", "Spanish", "Mandarin"]
+          },
+          "proficiency": {
+            "type": "string",
+            "description": "Proficiency level",
+            "enum": ["Native", "Fluent", "Advanced", "Intermediate", "Basic", "Beginner"],
+            "examples": ["Native", "Intermediate"]
+          }
+        },
+        "required": ["language", "proficiency"]
+      }
+    },
+    "references": {
+      "type": "string",
+      "description": "References information (typically 'Available upon request' or contact details)",
+      "examples": ["Available upon request"]
+    }
+  },
+  "required": ["personal"]
+}
