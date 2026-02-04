@@ -121,6 +121,41 @@
     nationalId: ['nationalid', 'idnumber', 'governmentid']
   };
 
+  // Month name constants to avoid duplication
+  const MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 
+                       'july', 'august', 'september', 'october', 'november', 'december'];
+  const SHORT_MONTH_NAMES = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const MONTH_NAMES_CAPITALIZED = ['January', 'February', 'March', 'April', 'May', 'June',
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+
+  // Priority order for pattern matching - more specific patterns first
+  const PRIORITY_PATTERNS = [
+    // Most specific phone patterns first
+    'phoneCountryCode', 'phoneLocal',
+    // Most specific date patterns first  
+    'startMonth', 'startYear', 'endMonth', 'endYear',
+    'graduationMonth', 'graduationYear',
+    'educationStartMonth', 'educationStartYear', 'educationEndMonth', 'educationEndYear'
+  ];
+
+  // Helper function to format phone number for display
+  function formatLocalNumber(digits) {
+    // Format based on digit count
+    if (digits.length === 10) {
+      // US format: XXX-XXX-XXXX
+      return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    } else if (digits.length === 7) {
+      // Local format: XXX-XXXX
+      return digits.replace(/(\d{3})(\d{4})/, '$1-$2');
+    } else if (digits.length === 11 && digits.startsWith('1')) {
+      // US with country code: 1-XXX-XXX-XXXX
+      return digits.replace(/1(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    // Return as-is for other lengths
+    return digits;
+  }
+
   // Helper function to parse phone number into country code and local number
   function parsePhoneNumber(phone) {
     if (!phone) return { countryCode: null, localNumber: null };
@@ -140,7 +175,7 @@
         if (rest.length >= 7) {
           return {
             countryCode: '+' + potentialCode,
-            localNumber: rest.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
+            localNumber: formatLocalNumber(rest)
           };
         }
       }
@@ -148,17 +183,9 @@
     
     // No country code detected - return the phone number as local number
     const digits = phone.replace(/\D/g, '');
-    // Format as XXX-XXX-XXXX if it's 10 digits (US format without country code)
-    if (digits.length === 10) {
-      return {
-        countryCode: null,
-        localNumber: digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
-      };
-    }
-    // Otherwise return as-is (with any formatting preserved)
     return {
       countryCode: null,
-      localNumber: phone.replace(/^\+\d{1,3}[-.\s]?/, '').trim() || phone
+      localNumber: formatLocalNumber(digits) || phone
     };
   }
 
@@ -200,17 +227,12 @@
     }
     
     // Try to parse Month Year format (e.g., "January 2020")
-    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
-                        'july', 'august', 'september', 'october', 'november', 'december'];
-    const shortMonthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
-                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-    
     const monthYearMatch = dateStr.match(/^([a-zA-Z]+)\s+(\d{4})$/);
     if (monthYearMatch) {
       const monthName = monthYearMatch[1].toLowerCase();
-      let monthIndex = monthNames.indexOf(monthName);
+      let monthIndex = MONTH_NAMES.indexOf(monthName);
       if (monthIndex === -1) {
-        monthIndex = shortMonthNames.indexOf(monthName.substring(0, 3));
+        monthIndex = SHORT_MONTH_NAMES.indexOf(monthName.substring(0, 3));
       }
       if (monthIndex !== -1) {
         return {
@@ -225,11 +247,9 @@
 
   // Helper function to get month name from month number
   function getMonthName(monthNum) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'];
     const num = parseInt(monthNum, 10);
     if (num >= 1 && num <= 12) {
-      return months[num - 1];
+      return MONTH_NAMES_CAPITALIZED[num - 1];
     }
     return null;
   }
@@ -351,20 +371,11 @@
     // First, try exact matches (more specific patterns first)
     // This helps avoid false positives where "phone" matches a country code field
     
-    // Define priority order - more specific patterns should be checked first
+    // Build priority order using the pre-defined PRIORITY_PATTERNS
     const priorityOrder = [
-      // Most specific phone patterns first
-      'phoneCountryCode', 'phoneLocal',
-      // Most specific date patterns first  
-      'startMonth', 'startYear', 'endMonth', 'endYear',
-      'graduationMonth', 'graduationYear',
-      'educationStartMonth', 'educationStartYear', 'educationEndMonth', 'educationEndYear',
+      ...PRIORITY_PATTERNS,
       // Then the more general patterns
-      ...Object.keys(FIELD_PATTERNS).filter(k => 
-        !['phoneCountryCode', 'phoneLocal', 'startMonth', 'startYear', 'endMonth', 'endYear',
-          'graduationMonth', 'graduationYear', 'educationStartMonth', 'educationStartYear', 
-          'educationEndMonth', 'educationEndYear'].includes(k)
-      )
+      ...Object.keys(FIELD_PATTERNS).filter(k => !PRIORITY_PATTERNS.includes(k))
     ];
     
     for (const dataKey of priorityOrder) {
@@ -667,12 +678,8 @@
     // Check if this is a month dropdown - try to match month number with month name
     const monthNumber = parseInt(value, 10);
     if (monthNumber >= 1 && monthNumber <= 12) {
-      const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
-                          'july', 'august', 'september', 'october', 'november', 'december'];
-      const shortMonthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-                                'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-      const fullMonthName = monthNames[monthNumber - 1];
-      const shortMonthName = shortMonthNames[monthNumber - 1];
+      const fullMonthName = MONTH_NAMES[monthNumber - 1];
+      const shortMonthName = SHORT_MONTH_NAMES[monthNumber - 1];
       
       for (let option of selectElement.options) {
         const optionTextLower = option.text.toLowerCase().trim();
