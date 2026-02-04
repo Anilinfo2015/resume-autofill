@@ -131,6 +131,28 @@
         <input type="tel" id="phone" name="phone" required>
       </div>
 
+      <h2>Phone Number (With Country Code Dropdown)</h2>
+      <p class="help-text">This format is common in many job applications</p>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="phoneCountryCode">Country Code</label>
+          <select id="phoneCountryCode" name="phoneCountryCode">
+            <option value="">Select...</option>
+            <option value="+1">United States (+1)</option>
+            <option value="+44">United Kingdom (+44)</option>
+            <option value="+91">India (+91)</option>
+            <option value="+61">Australia (+61)</option>
+            <option value="+49">Germany (+49)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="phoneLocal">Phone Number</label>
+          <input type="tel" id="phoneLocal" name="phoneLocal" placeholder="555-123-4567">
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="address">Street Address</label>
         <input type="text" id="address" name="address">
@@ -209,6 +231,61 @@
         </div>
       </div>
 
+      <h2>Employment Dates (Separate Month/Year)</h2>
+      <p class="help-text">This format is common in many job applications with separate month and year dropdowns</p>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="startMonth">Start Month</label>
+          <select id="startMonth" name="startMonth">
+            <option value="">Select Month</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="startYear">Start Year</label>
+          <input type="text" id="startYear" name="startYear" placeholder="e.g., 2020">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="endMonth">End Month</label>
+          <select id="endMonth" name="endMonth">
+            <option value="">Select Month</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="endYear">End Year</label>
+          <input type="text" id="endYear" name="endYear" placeholder="e.g., 2023">
+        </div>
+      </div>
+
       <div class="checkbox-group">
         <input type="checkbox" id="currentlyWorking" name="currentlyWorking">
         <label for="currentlyWorking">I currently work here</label>
@@ -242,6 +319,35 @@
         <div class="form-group">
           <label for="gpa">GPA</label>
           <input type="text" id="gpa" name="gpa" placeholder="e.g., 3.8">
+        </div>
+      </div>
+
+      <h2>Graduation Date (Separate Month/Year)</h2>
+      <p class="help-text">Some applications have separate graduation month and year fields</p>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="graduationMonth">Graduation Month</label>
+          <select id="graduationMonth" name="graduationMonth">
+            <option value="">Select Month</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="graduationYear">Graduation Year</label>
+          <input type="text" id="graduationYear" name="graduationYear" placeholder="e.g., 2016">
         </div>
       </div>
 
