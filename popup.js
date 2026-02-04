@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const statusDiv = document.getElementById('status');
   const dataPreview = document.getElementById('dataPreview');
 
-  // Load and display current resume data
-  loadCurrentData();
+  // Load and display current resume data (show message if loaded from cache)
+  loadCurrentData(true);
 
   // File input handler
   fileInput.addEventListener('change', function(e) {
@@ -86,10 +86,13 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.sync.set({resumeData: data});
   }
 
-  function loadCurrentData() {
+  function loadCurrentData(showCacheMessage = false) {
     chrome.storage.sync.get(['resumeData'], function(result) {
       if (result.resumeData) {
         displayDataPreview(result.resumeData);
+        if (showCacheMessage) {
+          showStatus('Resume data loaded from cache. Ready to fill forms!', 'success');
+        }
       }
     });
   }
