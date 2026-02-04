@@ -273,9 +273,11 @@
       case 'endDate':
         return resumeData.workExperience?.[0]?.endDate;
       case 'current':
-        // Return "Yes" or "No" for radio buttons/selects, but keep boolean for checkboxes
+        // Return "Yes" or "No" for radio buttons/selects; return undefined if not explicitly set
         const currentValue = resumeData.workExperience?.[0]?.current;
-        return currentValue === true ? "Yes" : (currentValue === false ? "No" : currentValue);
+        if (currentValue === true) return "Yes";
+        if (currentValue === false) return "No";
+        return undefined;
       case 'workDescription':
         return resumeData.workExperience?.[0]?.description;
       
@@ -426,7 +428,8 @@
     } else if (type === 'checkbox') {
       // For checkboxes - handle both boolean and "Yes"/"No" string values
       if (typeof value === 'string') {
-        element.checked = value.toLowerCase() === 'yes' || value.toLowerCase() === 'true';
+        const lowerValue = value.toLowerCase();
+        element.checked = lowerValue === 'yes' || lowerValue === 'true';
       } else {
         element.checked = !!value;
       }
