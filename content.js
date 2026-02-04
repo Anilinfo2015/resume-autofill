@@ -35,6 +35,7 @@
     // Secondary work experience (previous job)
     company2: ['previous company', 'previouscompany', 'company2', 'employer2', 'prioremployer'],
     position2: ['previous position', 'previousposition', 'position2', 'title2', 'priortitle', 'previousrole'],
+    workDescription2: ['jobdescription2', 'responsibilities2', 'duties2', 'workdescription2', 'jobduties2', 'previousjobdescription', 'previousresponsibilities'],
     
     // Education
     school: ['school', 'university', 'college', 'institution', 'alma', 'schoolname', 'universityname'],
@@ -282,6 +283,8 @@
         return resumeData.workExperience?.[1]?.company;
       case 'position2':
         return resumeData.workExperience?.[1]?.position || resumeData.workExperience?.[1]?.title;
+      case 'workDescription2':
+        return resumeData.workExperience?.[1]?.description;
       
       // Education (use most recent)
       case 'school':
