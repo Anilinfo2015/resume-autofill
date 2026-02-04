@@ -1,8 +1,66 @@
 // Content script for intelligent form filling
 // This script analyzes form fields and matches them with resume data
+// Supports Shadow DOM traversal for modern job application platforms (e.g., SmartRecruiters)
 
 (function() {
   'use strict';
+
+  // Cache native value setters for React compatibility (these don't change at runtime)
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value'
+  )?.set;
+  const nativeTextareaValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype, 'value'
+  )?.set;
+
+  // Keyboard event trigger values (arbitrary printable character to trigger framework event handlers)
+  const TRIGGER_KEY = 'a';
+  const TRIGGER_KEY_CODE = 'KeyA';
+
+  /**
+   * Recursively finds all form elements including those inside Shadow DOM
+   * This is essential for modern job application platforms like SmartRecruiters
+   * that use Shadow DOM encapsulation
+   * @param {Node} root - The root node to start searching from
+   * @returns {Element[]} - Array of form elements found
+   */
+  function getAllFormElements(root = document) {
+    const elements = [];
+    const selector = 'input, textarea, select';
+    
+    // Get elements from the current root
+    const rootElements = root.querySelectorAll(selector);
+    elements.push(...rootElements);
+    
+    // Recursively search through Shadow DOMs
+    const allElements = root.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.shadowRoot) {
+        const shadowElements = getAllFormElements(element.shadowRoot);
+        elements.push(...shadowElements);
+      }
+    }
+    
+    // Also search through iframes (same-origin only)
+    try {
+      const iframes = root.querySelectorAll('iframe');
+      for (const iframe of iframes) {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            const iframeElements = getAllFormElements(iframeDoc);
+            elements.push(...iframeElements);
+          }
+        } catch (e) {
+          // Cross-origin iframe, skip silently
+        }
+      }
+    } catch (e) {
+      // Unable to access iframes, skip silently
+    }
+    
+    return elements;
+  }
 
   // Field mapping patterns - maps common field patterns to resume data
   const FIELD_PATTERNS = {
@@ -125,8 +183,8 @@
   function fillFormWithData(resumeData) {
     let fieldsFound = 0;
     
-    // Find all input, textarea, and select elements
-    const formElements = document.querySelectorAll('input, textarea, select');
+    // Find all input, textarea, and select elements including those in Shadow DOM
+    const formElements = getAllFormElements(document);
     
     formElements.forEach(element => {
       // Skip hidden, submit, button, and already filled fields (unless empty)
@@ -161,6 +219,24 @@
     }
     if (element.title) identifiers.push(element.title.toLowerCase());
     
+    // Get from data attributes commonly used by modern job application platforms
+    // (SmartRecruiters, Workday, Greenhouse, etc.)
+    const dataAttributes = [
+      'data-testid',
+      'data-qa',
+      'data-automation-id',
+      'data-field',
+      'data-field-name',
+      'data-name',
+      'data-id'
+    ];
+    for (const attr of dataAttributes) {
+      const value = element.getAttribute(attr);
+      if (value) {
+        identifiers.push(value.toLowerCase());
+      }
+    }
+    
     // Get from associated label
     const label = findLabelForElement(element);
     if (label) {
@@ -171,14 +247,38 @@
     if (element.autocomplete) {
       identifiers.push(element.autocomplete.toLowerCase());
     }
+
+    // Get from aria-describedby (common in accessible forms)
+    const describedBy = element.getAttribute('aria-describedby');
+    if (describedBy) {
+      // Try to find the element that describes this input
+      const ownerDoc = element.ownerDocument || document;
+      const descElement = ownerDoc.getElementById(describedBy);
+      if (descElement) {
+        const descText = descElement.textContent.trim();
+        if (descText) {
+          identifiers.push(descText.toLowerCase());
+        }
+      }
+    }
     
     return identifiers;
   }
 
   function findLabelForElement(element) {
-    // Try to find label by 'for' attribute
+    // Get the owner document (important for Shadow DOM)
+    const ownerDoc = element.ownerDocument || document;
+    const rootNode = element.getRootNode();
+    
+    // Try to find label by 'for' attribute within the same root (handles Shadow DOM)
     if (element.id) {
-      const label = document.querySelector(`label[for="${element.id}"]`);
+      // Check in the same root first (for Shadow DOM support)
+      if (rootNode && rootNode !== document && rootNode.querySelector) {
+        const label = rootNode.querySelector(`label[for="${element.id}"]`);
+        if (label) return label.textContent.trim();
+      }
+      // Fallback to document-level search
+      const label = ownerDoc.querySelector(`label[for="${element.id}"]`);
       if (label) return label.textContent.trim();
     }
     
@@ -194,13 +294,21 @@
       if (sibling.tagName === 'LABEL') {
         return sibling.textContent.trim();
       }
+      // Also check for slots (common in Shadow DOM) that may contain labels
+      if (sibling.tagName === 'SLOT') {
+        const assignedNodes = sibling.assignedNodes({ flatten: true });
+        for (const node of assignedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'LABEL') {
+            return node.textContent.trim();
+          }
+        }
+      }
       sibling = sibling.previousElementSibling;
     }
     
     // Try to find nearby text
     const parent = element.parentElement;
     if (parent) {
-      const textContent = parent.textContent.trim();
       // Get text before the input element
       const elemIndex = Array.from(parent.children).indexOf(element);
       if (elemIndex > 0) {
@@ -210,6 +318,17 @@
           .map(node => node.textContent.trim())
           .join(' ');
         if (prevText) return prevText;
+      }
+    }
+
+    // For Shadow DOM, try to find text in sibling elements (common pattern)
+    if (parent) {
+      const prevElement = element.previousElementSibling;
+      if (prevElement && prevElement.textContent) {
+        const text = prevElement.textContent.trim();
+        if (text && text.length < 100) { // Reasonable label length
+          return text;
+        }
       }
     }
     
@@ -424,19 +543,39 @@
     } else if (type === 'checkbox') {
       // For checkboxes
       element.checked = !!value;
+      // Trigger events for React/Angular/Vue frameworks
+      triggerInputEvents(element);
     } else if (type === 'radio') {
       // For radio buttons
       if (value && element.value.toLowerCase() === value.toString().toLowerCase()) {
         element.checked = true;
+        // Trigger events for React/Angular/Vue frameworks
+        triggerInputEvents(element);
       }
     } else {
       // For text inputs and textareas
-      element.value = value;
+      // Focus the element first (important for some frameworks)
+      // Wrapped in try-catch to avoid disrupting accessibility or user interaction
+      try {
+        if (element.offsetParent !== null) { // Check if element is visible
+          element.focus();
+        }
+      } catch (e) {
+        // Ignore focus errors (element may not be focusable)
+      }
       
-      // Trigger events to ensure the form recognizes the change
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-      element.dispatchEvent(new Event('blur', { bubbles: true }));
+      // Set the value using cached native value setters to bypass React's synthetic events
+      if (tagName === 'textarea' && nativeTextareaValueSetter) {
+        nativeTextareaValueSetter.call(element, value);
+      } else if (nativeInputValueSetter) {
+        nativeInputValueSetter.call(element, value);
+      } else {
+        element.value = value;
+      }
+      
+      // Trigger comprehensive events to ensure the form recognizes the change
+      // This is essential for React-controlled forms and modern UI frameworks
+      triggerInputEvents(element);
     }
     
     // Visual feedback
@@ -446,12 +585,44 @@
     }, 2000);
   }
 
+  /**
+   * Triggers comprehensive input events for React/Angular/Vue compatibility
+   * @param {Element} element - The element to trigger events on
+   */
+  function triggerInputEvents(element) {
+    // Create and dispatch events that React and other frameworks listen to
+    const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+    const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+    const blurEvent = new Event('blur', { bubbles: true, cancelable: true });
+    
+    // React 16+ uses these events
+    element.dispatchEvent(inputEvent);
+    element.dispatchEvent(changeEvent);
+    element.dispatchEvent(blurEvent);
+    
+    // Also try keyboard events for some edge cases where frameworks listen for keydown
+    // to validate input. The TRIGGER_KEY values are arbitrary - any printable character
+    // works. Some frameworks use keydown to detect user interaction and trigger
+    // validation or state updates that wouldn't occur with just input/change events.
+    try {
+      const keyboardEvent = new KeyboardEvent('keydown', {
+        bubbles: true,
+        cancelable: true,
+        key: TRIGGER_KEY,
+        code: TRIGGER_KEY_CODE
+      });
+      element.dispatchEvent(keyboardEvent);
+    } catch (e) {
+      // Ignore if keyboard events not supported
+    }
+  }
+
   function fillSelect(selectElement, value) {
     // Try exact match first
     for (let option of selectElement.options) {
       if (option.value === value || option.text === value) {
         selectElement.value = option.value;
-        selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+        triggerInputEvents(selectElement);
         return;
       }
     }
@@ -465,12 +636,12 @@
       if (optionTextLower.includes(valueLower) || valueLower.includes(optionTextLower) ||
           optionValueLower.includes(valueLower) || valueLower.includes(optionValueLower)) {
         selectElement.value = option.value;
-        selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+        triggerInputEvents(selectElement);
         return;
       }
     }
   }
 
   // Console log to confirm script is loaded
-  console.log('Resume AutoFill content script loaded');
+  console.log('Resume AutoFill content script loaded (with Shadow DOM support)');
 })();
