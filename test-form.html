@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Form - Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #667eea;
+      margin-top: 30px;
+      font-size: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #555;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .checkbox-group {
+      margin-top: 20px;
+    }
+    .checkbox-group label {
+      display: inline;
+      font-weight: normal;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .info-box {
+      background: #e8f4f8;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>🏢 Job Application Form</h1>
+    
+    <div class="info-box">
+      <strong>Test the Resume AutoFill Extension:</strong>
+      <ol>
+        <li>Install the Resume AutoFill extension</li>
+        <li>Load your resume data (or use the sample)</li>
+        <li>Click the extension icon and press "Fill Current Page"</li>
+        <li>Watch this form get filled automatically!</li>
+      </ol>
+    </div>
+
+    <form id="jobApplicationForm">
+      <h2>Personal Information</h2>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input type="text" id="firstName" name="firstName" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input type="text" id="lastName" name="lastName" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address *</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone Number *</label>
+        <input type="tel" id="phone" name="phone" required>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Street Address</label>
+        <input type="text" id="address" name="address">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="city">City</label>
+          <input type="text" id="city" name="city">
+        </div>
+        
+        <div class="form-group">
+          <label for="state">State</label>
+          <input type="text" id="state" name="state">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="zipCode">Zip Code</label>
+          <input type="text" id="zipCode" name="zipCode">
+        </div>
+        
+        <div class="form-group">
+          <label for="country">Country</label>
+          <select id="country" name="country">
+            <option value="">Select Country</option>
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Australia">Australia</option>
+            <option value="India">India</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <h2>Professional Links</h2>
+
+      <div class="form-group">
+        <label for="linkedin">LinkedIn Profile</label>
+        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+      </div>
+
+      <div class="form-group">
+        <label for="portfolio">Portfolio/Website</label>
+        <input type="url" id="portfolio" name="portfolio" placeholder="https://yourportfolio.com">
+      </div>
+
+      <div class="form-group">
+        <label for="github">GitHub Profile</label>
+        <input type="url" id="github" name="github" placeholder="https://github.com/yourusername">
+      </div>
+
+      <h2>Current/Most Recent Employment</h2>
+
+      <div class="form-group">
+        <label for="company">Company Name</label>
+        <input type="text" id="company" name="company">
+      </div>
+
+      <div class="form-group">
+        <label for="jobTitle">Job Title</label>
+        <input type="text" id="jobTitle" name="jobTitle">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="startDate">Start Date</label>
+          <input type="text" id="startDate" name="startDate" placeholder="YYYY-MM">
+        </div>
+        
+        <div class="form-group">
+          <label for="endDate">End Date</label>
+          <input type="text" id="endDate" name="endDate" placeholder="YYYY-MM or Present">
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="currentlyWorking" name="currentlyWorking">
+        <label for="currentlyWorking">I currently work here</label>
+      </div>
+
+      <h2>Education</h2>
+
+      <div class="form-group">
+        <label for="university">University/School Name</label>
+        <input type="text" id="university" name="university">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="degree">Degree</label>
+          <input type="text" id="degree" name="degree" placeholder="e.g., Bachelor of Science">
+        </div>
+        
+        <div class="form-group">
+          <label for="fieldOfStudy">Field of Study</label>
+          <input type="text" id="fieldOfStudy" name="fieldOfStudy" placeholder="e.g., Computer Science">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="graduationDate">Graduation Date</label>
+          <input type="text" id="graduationDate" name="graduationDate" placeholder="YYYY-MM">
+        </div>
+        
+        <div class="form-group">
+          <label for="gpa">GPA</label>
+          <input type="text" id="gpa" name="gpa" placeholder="e.g., 3.8">
+        </div>
+      </div>
+
+      <h2>Additional Information</h2>
+
+      <div class="form-group">
+        <label for="skills">Skills (comma separated)</label>
+        <textarea id="skills" name="skills" placeholder="e.g., JavaScript, Python, React, Node.js"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="summary">Professional Summary</label>
+        <textarea id="summary" name="summary" placeholder="Tell us about your professional experience and career goals..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="coverLetter">Cover Letter (Optional)</label>
+        <textarea id="coverLetter" name="coverLetter" placeholder="Why are you interested in this position?"></textarea>
+      </div>
+
+      <button type="submit">Submit Application</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('jobApplicationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('✅ Form submitted successfully!\n\nThis is a demo form. In a real application, the data would be sent to a server.');
+      
+      // Show filled fields summary
+      const formData = new FormData(this);
+      let filledFields = 0;
+      for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+          filledFields++;
+        }
+      }
+      console.log(`Filled ${filledFields} fields`);
+    });
+
+    // Visual indicator for filled fields
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      field.addEventListener('change', function() {
+        if (this.value) {
+          this.style.borderColor = '#4CAF50';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
