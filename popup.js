@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Load sample resume
   loadSampleBtn.addEventListener('click', function() {
-    fetch('sample-resume.json')
+    fetch(chrome.runtime.getURL('sample-resume.json'))
       .then(response => response.json())
       .then(data => {
         saveResumeData(data);
