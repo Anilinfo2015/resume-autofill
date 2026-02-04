@@ -268,7 +268,7 @@
         }
       }
       
-      const output = `Results: ${filledCount}/${totalCount} fields filled\n\n` + JSON.stringify(results, null, 2);
+      const output = `Results: ${filledCount}/${totalCount} fields filled\n\n${JSON.stringify(results, null, 2)}`;
       document.getElementById('result-output').textContent = output;
       
       if (filledCount === totalCount) {

@@ -5,6 +5,18 @@
 (function() {
   'use strict';
 
+  // Cache native value setters for React compatibility (these don't change at runtime)
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value'
+  )?.set;
+  const nativeTextareaValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype, 'value'
+  )?.set;
+
+  // Keyboard event trigger values (arbitrary printable character to trigger framework event handlers)
+  const TRIGGER_KEY = 'a';
+  const TRIGGER_KEY_CODE = 'KeyA';
+
   /**
    * Recursively finds all form elements including those inside Shadow DOM
    * This is essential for modern job application platforms like SmartRecruiters
@@ -543,16 +555,16 @@
     } else {
       // For text inputs and textareas
       // Focus the element first (important for some frameworks)
-      element.focus();
+      // Wrapped in try-catch to avoid disrupting accessibility or user interaction
+      try {
+        if (element.offsetParent !== null) { // Check if element is visible
+          element.focus();
+        }
+      } catch (e) {
+        // Ignore focus errors (element may not be focusable)
+      }
       
-      // Set the value using native value setter to bypass React's synthetic events
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype, 'value'
-      )?.set;
-      const nativeTextareaValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLTextAreaElement.prototype, 'value'
-      )?.set;
-      
+      // Set the value using cached native value setters to bypass React's synthetic events
       if (tagName === 'textarea' && nativeTextareaValueSetter) {
         nativeTextareaValueSetter.call(element, value);
       } else if (nativeInputValueSetter) {
@@ -588,13 +600,16 @@
     element.dispatchEvent(changeEvent);
     element.dispatchEvent(blurEvent);
     
-    // Also try keyboard events for some edge cases
+    // Also try keyboard events for some edge cases where frameworks listen for keydown
+    // to validate input. The TRIGGER_KEY values are arbitrary - any printable character
+    // works. Some frameworks use keydown to detect user interaction and trigger
+    // validation or state updates that wouldn't occur with just input/change events.
     try {
       const keyboardEvent = new KeyboardEvent('keydown', {
         bubbles: true,
         cancelable: true,
-        key: 'a',
-        code: 'KeyA'
+        key: TRIGGER_KEY,
+        code: TRIGGER_KEY_CODE
       });
       element.dispatchEvent(keyboardEvent);
     } catch (e) {
