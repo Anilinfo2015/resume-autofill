@@ -321,17 +321,21 @@
   }
   
   function getMatchScore(identifier, pattern) {
-    // Normalize both strings: remove spaces, underscores, hyphens and convert to lowercase
-    const normalizedIdentifier = identifier.replace(/[\s_-]/g, '').toLowerCase();
-    const normalizedPattern = pattern.replace(/[\s_-]/g, '').toLowerCase();
+    // Normalize both strings: remove spaces, underscores, hyphens, and forward slashes, convert to lowercase
+    const normalizedIdentifier = identifier.replace(/[\s_\-\/]/g, '').toLowerCase();
+    const normalizedPattern = pattern.replace(/[\s_\-\/]/g, '').toLowerCase();
     
     // Exact match gets highest score
     if (normalizedIdentifier === normalizedPattern) {
       return 100;
     }
     
-    // Special handling for known short patterns that are unambiguous (like 'gpa', 'dob', 'ssn', 'ice')
-    // These are specific enough to be matched even though they're short
+    // Special handling for known short patterns that are unambiguous
+    // These domain-specific abbreviations are safe to match even though they're short:
+    // - 'gpa': Grade Point Average - never confused with other fields
+    // - 'dob': Date of Birth - specific identifier
+    // - 'ssn': Social Security Number - specific identifier
+    // - 'ice': In Case of Emergency (contact) - specific identifier
     const unambiguousShortPatterns = ['gpa', 'dob', 'ssn', 'ice'];
     const isUnambiguousShort = unambiguousShortPatterns.includes(normalizedPattern);
     
@@ -343,7 +347,7 @@
       if (normalizedPattern.length >= MIN_PATTERN_LENGTH || isUnambiguousShort) {
         // Score based on how much of the identifier is covered by the pattern
         // Longer patterns relative to identifier length get higher scores
-        // Cap coverage at 1.0 to keep score in documented range
+        // Math.min caps at 1.0 for defensive programming - normally <= 1 when pattern is in identifier
         const coverage = Math.min(1, normalizedPattern.length / normalizedIdentifier.length);
         return 50 + (coverage * 40); // Score range: 50-90
       }
@@ -355,7 +359,8 @@
     const MIN_REVERSE_MATCH_LENGTH = 6;
     if (normalizedPattern.includes(normalizedIdentifier)) {
       if (normalizedIdentifier.length >= MIN_REVERSE_MATCH_LENGTH) {
-        // Cap coverage at 1.0 to keep score in documented range
+        // Math.min caps at 1.0 to prevent score exceeding range when identifier is much
+        // shorter than pattern (e.g., identifier 'github' vs pattern 'githubprofileurl')
         const coverage = Math.min(1, normalizedIdentifier.length / normalizedPattern.length);
         return 30 + (coverage * 30); // Score range: 30-60
       }
@@ -403,7 +408,8 @@
       case 'endDate':
         return resumeData.workExperience?.[0]?.endDate;
       case 'current': {
-        // Return "Yes"/"No" strings for radio buttons, or boolean for checkboxes
+        // Convert boolean to "Yes"/"No" strings for better radio button matching
+        // The actual field type handling (checkbox vs radio) is done in fillField()
         const currentValue = resumeData.workExperience?.[0]?.current;
         if (currentValue === true) return "Yes";
         if (currentValue === false) return "No";
@@ -587,7 +593,9 @@
       element.dispatchEvent(new Event('change', { bubbles: true }));
       element.dispatchEvent(new Event('blur', { bubbles: true }));
       
-      // Also dispatch keydown event for frameworks that listen for keyboard input
+      // Dispatch synthetic keydown event to trigger framework event handlers
+      // This is NOT simulating real keyboard input, just ensuring any keydown listeners
+      // are notified of the change (using arbitrary key defined at top of file)
       element.dispatchEvent(new KeyboardEvent('keydown', {
         key: TRIGGER_KEY,
         code: TRIGGER_KEY_CODE,
