@@ -5,102 +5,105 @@
   'use strict';
 
   // Field mapping patterns - maps common field patterns to resume data
+  // Minimum pattern length for matching to avoid false positives with short patterns
+  const MIN_PATTERN_LENGTH = 4;
+
   const FIELD_PATTERNS = {
     // Personal Information
-    firstName: ['first', 'fname', 'firstname', 'given', 'forename'],
-    lastName: ['last', 'lname', 'lastname', 'surname', 'family'],
-    fullName: ['name', 'fullname', 'full_name', 'your name', 'applicant'],
-    email: ['email', 'e-mail', 'mail', 'emailaddress'],
-    phone: ['phone', 'mobile', 'telephone', 'tel', 'contact', 'cell', 'phonenumber'],
-    address: ['address', 'street', 'address1', 'addr', 'streetaddress'],
-    addressLine2: ['address2', 'apt', 'suite', 'unit', 'apartment'],
-    city: ['city', 'town', 'municipality'],
-    state: ['state', 'province', 'region'],
-    zipCode: ['zip', 'postal', 'postcode', 'zipcode', 'postalcode'],
-    country: ['country', 'nation', 'countryofresidence'],
-    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl'],
-    website: ['website', 'site', 'webpage', 'url', 'homepage', 'personalsite'],
-    portfolio: ['portfolio', 'work samples', 'worksamples', 'portfoliourl'],
-    github: ['github', 'git', 'githubprofile', 'githuburl'],
-    dateOfBirth: ['dob', 'dateofbirth', 'birth', 'birthday', 'birthdate'],
+    firstName: ['firstname', 'first_name', 'fname', 'givenname', 'forename', 'first name'],
+    lastName: ['lastname', 'last_name', 'lname', 'surname', 'familyname', 'family name', 'last name'],
+    fullName: ['fullname', 'full_name', 'yourname', 'applicantname', 'candidatename', 'your name', 'full name'],
+    email: ['email', 'e-mail', 'emailaddress', 'email_address', 'useremail', 'contactemail'],
+    phone: ['phone', 'mobile', 'telephone', 'phonenumber', 'phone_number', 'contactphone', 'cellphone', 'mobilenumber'],
+    address: ['address', 'street', 'address1', 'streetaddress', 'street_address', 'homeaddress'],
+    addressLine2: ['address2', 'addressline2', 'suite', 'apartment', 'aptnum', 'unitnumber'],
+    city: ['city', 'town', 'municipality', 'cityname'],
+    state: ['state', 'province', 'region', 'stateprovince'],
+    zipCode: ['zipcode', 'zip_code', 'postal', 'postcode', 'postalcode', 'postal_code'],
+    country: ['country', 'nation', 'countryofresidence', 'countryname'],
+    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl', 'linkedin_url'],
+    website: ['website', 'personalsite', 'homepage', 'personalwebsite', 'weburl'],
+    portfolio: ['portfolio', 'portfoliourl', 'worksamples', 'portfolio_url'],
+    github: ['github', 'githubprofile', 'githuburl', 'github_url'],
+    dateOfBirth: ['dateofbirth', 'date_of_birth', 'birthdate', 'birthday', 'dob'],
     
     // Work Experience
-    company: ['company', 'employer', 'organization', 'firm', 'workplace', 'companyname', 'employername'],
-    position: ['position', 'title', 'job title', 'jobtitle', 'role', 'designation', 'jobposition', 'currenttitle'],
-    startDate: ['start', 'from', 'begin', 'commenced', 'startdate', 'datefrom'],
-    endDate: ['end', 'to', 'until', 'finished', 'enddate', 'dateto'],
-    current: ['current', 'present', 'ongoing', 'currentlyworking', 'currentjob'],
-    workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties'],
+    company: ['company', 'employer', 'organization', 'companyname', 'employername', 'workplace', 'firmname'],
+    position: ['position', 'jobtitle', 'job_title', 'role', 'designation', 'jobposition', 'currenttitle', 'positiontitle'],
+    startDate: ['startdate', 'start_date', 'datefrom', 'fromdate', 'begindate', 'commenced'],
+    endDate: ['enddate', 'end_date', 'dateto', 'todate', 'finishdate', 'finished'],
+    current: ['currentjob', 'currentlyworking', 'currentemployer', 'currentlyemployed', 'presentemployer'],
+    workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties', 'roleresponsibilities'],
     
     // Secondary work experience (previous job)
-    company2: ['previous company', 'previouscompany', 'company2', 'employer2', 'prioremployer'],
-    position2: ['previous position', 'previousposition', 'position2', 'title2', 'priortitle', 'previousrole'],
+    company2: ['previouscompany', 'company2', 'employer2', 'prioremployer', 'formeremployer', 'previous company'],
+    position2: ['previousposition', 'position2', 'title2', 'priortitle', 'previousrole', 'formertitle', 'previous position'],
     
     // Education
-    school: ['school', 'university', 'college', 'institution', 'alma', 'schoolname', 'universityname'],
-    degree: ['degree', 'qualification', 'diploma', 'degreetype', 'educationlevel'],
-    major: ['major', 'field', 'study', 'specialization', 'concentration', 'fieldofstudy', 'areaof'],
-    gpa: ['gpa', 'grade', 'grades', 'gradepoint', 'cgpa'],
-    graduationDate: ['graduation', 'graduated', 'completion', 'graduationdate', 'graduationyear'],
+    school: ['school', 'university', 'college', 'institution', 'schoolname', 'universityname', 'collegename', 'almamater'],
+    degree: ['degree', 'qualification', 'diploma', 'degreetype', 'educationlevel', 'degreename'],
+    major: ['major', 'fieldofstudy', 'field_of_study', 'specialization', 'concentration', 'studyfield', 'areaof'],
+    gpa: ['gpa', 'gradepoint', 'gradepointaverage', 'cgpa', 'grades'],
+    graduationDate: ['graduation', 'graduationdate', 'graduation_date', 'graduationyear', 'completiondate'],
     
     // Secondary education
-    school2: ['highschool', 'high school', 'secondaryschool', 'school2'],
-    degree2: ['degree2', 'previousdegree'],
+    school2: ['highschool', 'secondaryschool', 'school2', 'previousschool', 'high school'],
+    degree2: ['degree2', 'previousdegree', 'seconddegree'],
     
     // Work Authorization & Eligibility (Common pain point in job applications)
-    workAuthorization: ['authorized', 'authorization', 'eligible', 'eligibility', 'legallyauthorized', 'righttowork', 'workpermit', 'legally eligible', 'legaltowork'],
-    visaSponsorship: ['sponsorship', 'sponsor', 'visa', 'visastatus', 'requiresponsorship', 'needsponsorship', 'visarequired', 'immigrationstatus'],
-    citizenshipStatus: ['citizenship', 'citizen', 'nationalstatus', 'nationality'],
+    workAuthorization: ['authorized', 'authorization', 'legallyauthorized', 'righttowork', 'workpermit', 'legaltowork', 'workeligibility', 'legally eligible', 'right to work'],
+    visaSponsorship: ['sponsorship', 'sponsor', 'visastatus', 'requiresponsorship', 'needsponsorship', 'visarequired', 'immigrationstatus', 'visasponsorship'],
+    citizenshipStatus: ['citizenship', 'citizenshipstatus', 'nationalstatus', 'nationality'],
     
     // Salary & Compensation (Common pain point)
-    salaryExpectation: ['salary', 'compensation', 'pay', 'expectedsalary', 'desiredsalary', 'salaryexpectation', 'salaryrange', 'payexpectation', 'expectedcompensation', 'wage'],
-    currentSalary: ['currentsalary', 'currentpay', 'currentcompensation', 'presentsalary'],
+    salaryExpectation: ['salary', 'compensation', 'expectedsalary', 'desiredsalary', 'salaryexpectation', 'salaryrange', 'payexpectation', 'expectedcompensation', 'wagerate'],
+    currentSalary: ['currentsalary', 'currentpay', 'currentcompensation', 'presentsalary', 'current_salary'],
     
     // Availability (Common pain point)
-    availableStartDate: ['available', 'availabledate', 'startdate', 'canstart', 'whenstart', 'earlieststart', 'availabilitydate', 'joiningdate'],
-    noticePeriod: ['notice', 'noticeperiod', 'noticerequired', 'currentnotice', 'noticedays'],
+    availableStartDate: ['availabledate', 'canstart', 'whenstart', 'earlieststart', 'availabilitydate', 'joiningdate', 'available_date', 'startavailability'],
+    noticePeriod: ['noticeperiod', 'notice_period', 'noticerequired', 'currentnotice', 'noticedays'],
     
     // References (Common pain point)
-    referenceName: ['referencename', 'refname', 'reference1name', 'professionalreference'],
-    referencePhone: ['referencephone', 'refphone', 'reference1phone'],
-    referenceEmail: ['referenceemail', 'refemail', 'reference1email'],
-    referenceRelationship: ['referencerelationship', 'refrelation', 'relationship', 'reference1relationship'],
-    references: ['reference', 'referees', 'professionalreferences'],
+    referenceName: ['referencename', 'refname', 'reference1name', 'professionalreference', 'reference_name'],
+    referencePhone: ['referencephone', 'refphone', 'reference1phone', 'reference_phone'],
+    referenceEmail: ['referenceemail', 'refemail', 'reference1email', 'reference_email'],
+    referenceRelationship: ['referencerelationship', 'refrelation', 'reference1relationship', 'reference_relationship'],
+    references: ['references', 'referees', 'professionalreferences', 'referencelist'],
     
     // Emergency Contact (Common in applications)
-    emergencyContactName: ['emergencycontact', 'emergencyname', 'emergency contact name', 'icename'],
-    emergencyContactPhone: ['emergencyphone', 'emergency contact phone', 'icephone', 'emergencycontactphone'],
-    emergencyContactRelationship: ['emergencyrelationship', 'emergencycontactrelation', 'icerelation'],
+    emergencyContactName: ['emergencycontact', 'emergencyname', 'icename', 'emergencycontactname', 'emergency contact name'],
+    emergencyContactPhone: ['emergencyphone', 'icephone', 'emergencycontactphone', 'emergency contact phone'],
+    emergencyContactRelationship: ['emergencyrelationship', 'emergencycontactrelation', 'icerelation', 'emergencycontactrelationship'],
     
     // EEO/Diversity (Optional fields - common in US applications)
-    gender: ['gender', 'sex'],
-    ethnicity: ['ethnicity', 'race', 'ethnic'],
-    veteranStatus: ['veteran', 'veteranstatus', 'militarystatus', 'militaryservice'],
-    disabilityStatus: ['disability', 'disabilitystatus', 'disabled'],
+    gender: ['gender', 'genderidentity', 'gender_identity'],
+    ethnicity: ['ethnicity', 'race', 'ethnicbackground', 'ethnic_background', 'ethnicorigin'],
+    veteranStatus: ['veteran', 'veteranstatus', 'militarystatus', 'militaryservice', 'veteran_status'],
+    disabilityStatus: ['disability', 'disabilitystatus', 'disability_status', 'disabled'],
     
     // Additional common fields
-    yearsOfExperience: ['yearsofexperience', 'experience', 'totalexperience', 'yearsexperience', 'experienceyears'],
-    highestEducation: ['highesteducation', 'educationlevel', 'highestdegree', 'highestqualification'],
-    driversLicense: ['driverslicense', 'license', 'drivinglicense', 'haslicense'],
-    willingToRelocate: ['relocate', 'relocation', 'willingtorelocate', 'opentorelocation', 'relocationwilling'],
-    willingToTravel: ['travel', 'travelrequired', 'willingtotravel', 'businesstravel', 'travelpercentage'],
+    yearsOfExperience: ['yearsofexperience', 'years_of_experience', 'totalexperience', 'yearsexperience', 'experienceyears', 'workexperience'],
+    highestEducation: ['highesteducation', 'educationlevel', 'highestdegree', 'highestqualification', 'highest_education'],
+    driversLicense: ['driverslicense', 'drivinglicense', 'haslicense', 'drivers_license', 'drivinglicence'],
+    willingToRelocate: ['relocate', 'relocation', 'willingtorelocate', 'opentorelocation', 'relocationwilling', 'canrelocate'],
+    willingToTravel: ['travelrequired', 'willingtotravel', 'businesstravel', 'travelpercentage', 'cantravel', 'travelwilling'],
     
     // Certifications
-    certification: ['certification', 'certificate', 'certifications', 'certname', 'professionalcert'],
-    certificationIssuer: ['certissuer', 'issuedby', 'certifyingbody', 'certificationissuer'],
+    certification: ['certification', 'certificate', 'certifications', 'certname', 'professionalcert', 'certificationname'],
+    certificationIssuer: ['certissuer', 'issuedby', 'certifyingbody', 'certificationissuer', 'issuerorganization'],
     
     // Languages
-    language: ['language', 'languages', 'spokenlanguage', 'languageskill'],
-    languageProficiency: ['proficiency', 'fluency', 'languagelevel', 'languageproficiency'],
+    language: ['language', 'languages', 'spokenlanguage', 'languageskill', 'languageproficiency'],
+    languageProficiency: ['proficiency', 'fluency', 'languagelevel', 'languagefluency', 'proficiencylevel'],
     
     // Other
-    summary: ['summary', 'objective', 'about', 'bio', 'description', 'profile', 'professionalsummary', 'careerobjective'],
-    skills: ['skill', 'expertise', 'competenc', 'proficienc', 'technicalskills', 'keyskills'],
-    coverLetter: ['cover', 'letter', 'motivation', 'coverletter', 'motivationletter'],
+    summary: ['summary', 'objective', 'about', 'biography', 'professionalsummary', 'careerobjective', 'professionalprofile', 'aboutme'],
+    skills: ['skills', 'expertise', 'competencies', 'proficiencies', 'technicalskills', 'keyskills', 'skillset'],
+    coverLetter: ['coverletter', 'cover_letter', 'motivationletter', 'motivation_letter', 'coveringletter'],
     
     // Social Security / ID (handled carefully)
-    ssn: ['ssn', 'socialsecurity', 'social security'],
-    nationalId: ['nationalid', 'idnumber', 'governmentid']
+    ssn: ['ssn', 'socialsecurity', 'social security', 'socialsecuritynumber'],
+    nationalId: ['nationalid', 'idnumber', 'governmentid', 'national_id', 'nationalidnumber']
   };
 
   // Listen for messages from popup
@@ -218,21 +221,69 @@
 
   function matchFieldToData(identifiers, resumeData) {
     // Try to match field identifiers with resume data patterns
+    // Use a scoring system to find the best match, not just the first match
+    let bestMatch = null;
+    let bestScore = 0;
+    
     for (const [dataKey, patterns] of Object.entries(FIELD_PATTERNS)) {
       for (const identifier of identifiers) {
         for (const pattern of patterns) {
-          if (identifier.includes(pattern) || pattern.includes(identifier)) {
-            // Found a match, now get the actual data
+          const score = getMatchScore(identifier, pattern);
+          if (score > bestScore) {
             const value = getResumeValue(dataKey, resumeData);
             if (value !== null && value !== undefined) {
-              return value;
+              bestScore = score;
+              bestMatch = value;
             }
           }
         }
       }
     }
     
-    return null;
+    return bestMatch;
+  }
+  
+  function getMatchScore(identifier, pattern) {
+    // Normalize both strings: remove spaces, underscores, hyphens and convert to lowercase
+    const normalizedIdentifier = identifier.replace(/[\s_-]/g, '').toLowerCase();
+    const normalizedPattern = pattern.replace(/[\s_-]/g, '').toLowerCase();
+    
+    // Exact match gets highest score
+    if (normalizedIdentifier === normalizedPattern) {
+      return 100;
+    }
+    
+    // Special handling for known short patterns that are unambiguous (like 'gpa', 'dob', 'ssn')
+    // These are specific enough to be matched even though they're short
+    const unambiguousShortPatterns = ['gpa', 'dob', 'ssn'];
+    const isUnambiguousShort = unambiguousShortPatterns.includes(normalizedPattern);
+    
+    // Check if identifier contains the pattern
+    if (normalizedIdentifier.includes(normalizedPattern)) {
+      // Only match if pattern is significant (at least MIN_PATTERN_LENGTH characters)
+      // OR if it's an unambiguous short pattern
+      // This prevents short patterns like "to", "from", "name" from matching incorrectly
+      if (normalizedPattern.length >= MIN_PATTERN_LENGTH || isUnambiguousShort) {
+        // Score based on how much of the identifier is covered by the pattern
+        // Longer patterns relative to identifier length get higher scores
+        const coverage = normalizedPattern.length / normalizedIdentifier.length;
+        return 50 + (coverage * 40); // Score range: 50-90
+      }
+    }
+    
+    // Reverse match (pattern contains identifier) - only for substantial identifiers
+    // This helps when a field has a very specific short name that matches our pattern
+    // Use a higher threshold (6 chars) for reverse match to be more conservative
+    const MIN_REVERSE_MATCH_LENGTH = 6;
+    if (normalizedPattern.includes(normalizedIdentifier)) {
+      if (normalizedIdentifier.length >= MIN_REVERSE_MATCH_LENGTH) {
+        const coverage = normalizedIdentifier.length / normalizedPattern.length;
+        return 30 + (coverage * 30); // Score range: 30-60
+      }
+    }
+    
+    // No match
+    return 0;
   }
 
   function getResumeValue(key, resumeData) {
