@@ -7,6 +7,7 @@
   // Field mapping patterns - maps common field patterns to resume data
   const FIELD_PATTERNS = {
     // Personal Information
+    salutation: ['salutation', 'honorific', 'prefix', 'nametitle', 'name_title', 'name title'],
     firstName: ['first', 'fname', 'firstname', 'given', 'forename'],
     lastName: ['last', 'lname', 'lastname', 'surname', 'family'],
     fullName: ['name', 'fullname', 'full_name', 'your name', 'applicant'],
@@ -288,6 +289,16 @@
         return;
       }
 
+      // Special handling for salutation/title dropdowns
+      if (element.tagName.toLowerCase() === 'select' && isSalutationDropdown(element)) {
+        const salutationValue = resumeData.personal?.title || resumeData.personal?.salutation;
+        if (salutationValue) {
+          fillField(element, salutationValue);
+          fieldsFound++;
+          return;
+        }
+      }
+
       // Get field identifiers
       const fieldInfo = getFieldIdentifiers(element);
       const matchedData = matchFieldToData(fieldInfo, resumeData);
@@ -299,6 +310,28 @@
     });
 
     return fieldsFound;
+  }
+
+  // Helper function to detect if a select dropdown is a salutation/title dropdown
+  // Minimum number of salutation options required to consider it a salutation dropdown
+  const MIN_SALUTATION_MATCHES = 2;
+  
+  function isSalutationDropdown(selectElement) {
+    const salutationValues = ['mr', 'mrs', 'miss', 'ms', 'dr', 'prof', 'sir', 'madam'];
+    let salutationMatches = 0;
+    
+    for (let option of selectElement.options) {
+      // Normalize option values by removing periods and converting to lowercase
+      const optionValue = option.value.toLowerCase().trim().replace('.', '');
+      const optionText = option.text.toLowerCase().trim().replace('.', '');
+      
+      if (salutationValues.some(s => optionValue === s || optionText === s)) {
+        salutationMatches++;
+      }
+    }
+    
+    // A dropdown with at least MIN_SALUTATION_MATCHES salutation options is considered a salutation dropdown
+    return salutationMatches >= MIN_SALUTATION_MATCHES;
   }
 
   function getFieldIdentifiers(element) {
@@ -412,6 +445,7 @@
     
     switch(key) {
       // Personal info
+      case 'salutation': return personal.title || personal.salutation;
       case 'firstName': return personal.firstName;
       case 'lastName': return personal.lastName;
       case 'fullName': return personal.fullName || `${personal.firstName || ''} ${personal.lastName || ''}`.trim();

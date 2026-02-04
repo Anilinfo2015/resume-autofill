@@ -24,6 +24,7 @@ Copy and fill in this template:
 ```json
 {
   "personal": {
+    "title": "",
     "firstName": "",
     "lastName": "",
     "fullName": "",
@@ -125,6 +126,7 @@ Copy and fill in this template:
 
 | Field | Type | Example | Required |
 |-------|------|---------|----------|
+| title | string | "Mr", "Miss", "Ms" | Optional |
 | firstName | string | "John" | ⭐ Recommended |
 | lastName | string | "Doe" | ⭐ Recommended |
 | fullName | string | "John Doe" | Optional |
