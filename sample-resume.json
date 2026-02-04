@@ -1,0 +1,119 @@
+{
+  "personal": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "fullName": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1-555-123-4567",
+    "mobile": "+1-555-123-4567",
+    "address": "123 Main Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zipCode": "94102",
+    "zip": "94102",
+    "postalCode": "94102",
+    "country": "United States",
+    "linkedin": "https://linkedin.com/in/johndoe",
+    "website": "https://johndoe.com",
+    "portfolio": "https://portfolio.johndoe.com",
+    "github": "https://github.com/johndoe"
+  },
+  "summary": "Experienced software engineer with 8+ years of expertise in full-stack development, cloud architecture, and team leadership. Proven track record of delivering scalable solutions and mentoring junior developers.",
+  "workExperience": [
+    {
+      "company": "Tech Corp",
+      "position": "Senior Software Engineer",
+      "title": "Senior Software Engineer",
+      "jobTitle": "Senior Software Engineer",
+      "startDate": "2020-01",
+      "endDate": "Present",
+      "current": true,
+      "location": "San Francisco, CA",
+      "description": "Led development of microservices architecture serving 10M+ users. Mentored team of 5 junior engineers. Improved system performance by 40%.",
+      "responsibilities": [
+        "Designed and implemented RESTful APIs",
+        "Led code reviews and architectural decisions",
+        "Mentored junior developers"
+      ]
+    },
+    {
+      "company": "StartUp Inc",
+      "position": "Software Engineer",
+      "title": "Software Engineer",
+      "jobTitle": "Software Engineer",
+      "startDate": "2016-06",
+      "endDate": "2019-12",
+      "current": false,
+      "location": "Palo Alto, CA",
+      "description": "Developed full-stack features for SaaS platform. Implemented CI/CD pipelines. Reduced deployment time by 60%.",
+      "responsibilities": [
+        "Built responsive web applications using React",
+        "Developed backend services with Node.js",
+        "Implemented automated testing"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "Stanford University",
+      "university": "Stanford University",
+      "degree": "Master of Science",
+      "field": "Computer Science",
+      "fieldOfStudy": "Computer Science",
+      "major": "Computer Science",
+      "startDate": "2014-09",
+      "endDate": "2016-05",
+      "graduationDate": "2016-05",
+      "gpa": "3.8",
+      "location": "Stanford, CA"
+    },
+    {
+      "school": "UC Berkeley",
+      "university": "UC Berkeley",
+      "degree": "Bachelor of Science",
+      "field": "Computer Engineering",
+      "fieldOfStudy": "Computer Engineering",
+      "major": "Computer Engineering",
+      "startDate": "2010-09",
+      "endDate": "2014-05",
+      "graduationDate": "2014-05",
+      "gpa": "3.6",
+      "location": "Berkeley, CA"
+    }
+  ],
+  "skills": [
+    "JavaScript",
+    "Python",
+    "React",
+    "Node.js",
+    "AWS",
+    "Docker",
+    "Kubernetes",
+    "PostgreSQL",
+    "MongoDB",
+    "Git",
+    "Agile",
+    "REST APIs",
+    "Microservices",
+    "CI/CD"
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect",
+      "issuer": "Amazon Web Services",
+      "date": "2021-03",
+      "url": "https://aws.amazon.com/certification/"
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "proficiency": "Native"
+    },
+    {
+      "language": "Spanish",
+      "proficiency": "Intermediate"
+    }
+  ],
+  "references": "Available upon request"
+}
