@@ -30,6 +30,7 @@ Copy and fill in this template:
     "email": "",
     "phone": "",
     "address": "",
+    "addressLine2": "",
     "city": "",
     "state": "",
     "zipCode": "",
@@ -37,7 +38,8 @@ Copy and fill in this template:
     "linkedin": "",
     "website": "",
     "portfolio": "",
-    "github": ""
+    "github": "",
+    "dateOfBirth": ""
   },
   "summary": "",
   "workExperience": [
@@ -77,7 +79,43 @@ Copy and fill in this template:
       "proficiency": ""
     }
   ],
-  "references": "Available upon request"
+  "references": [
+    {
+      "name": "",
+      "title": "",
+      "relationship": "",
+      "company": "",
+      "phone": "",
+      "email": ""
+    }
+  ],
+  "eligibility": {
+    "workAuthorization": "Yes/No",
+    "requiresSponsorship": "Yes/No",
+    "citizenship": "",
+    "driversLicense": "Yes/No"
+  },
+  "preferences": {
+    "salaryExpectation": "",
+    "currentSalary": "",
+    "availableStartDate": "",
+    "noticePeriod": "",
+    "willingToRelocate": "Yes/No",
+    "willingToTravel": "",
+    "yearsOfExperience": ""
+  },
+  "emergencyContact": {
+    "name": "",
+    "phone": "",
+    "relationship": ""
+  },
+  "diversity": {
+    "gender": "",
+    "ethnicity": "",
+    "veteranStatus": "",
+    "disabilityStatus": ""
+  },
+  "coverLetter": ""
 }
 ```
 
@@ -93,6 +131,7 @@ Copy and fill in this template:
 | email | string | "john@example.com" | ⭐ Recommended |
 | phone | string | "+1-555-123-4567" | ⭐ Recommended |
 | address | string | "123 Main St" | Optional |
+| addressLine2 | string | "Apt 4B" | Optional |
 | city | string | "San Francisco" | Optional |
 | state | string | "CA" | Optional |
 | zipCode | string | "94102" | Optional |
@@ -101,6 +140,7 @@ Copy and fill in this template:
 | website | string (URL) | "https://example.com" | Optional |
 | portfolio | string (URL) | "https://portfolio.com" | Optional |
 | github | string (URL) | "https://github.com/..." | Optional |
+| dateOfBirth | string | "1990-05-15" | Optional |
 
 ### Work Experience (Array)
 
@@ -143,6 +183,79 @@ Or as a string:
 "skills": "JavaScript, Python, React, Node.js"
 ```
 
+### References (Array) - NEW!
+
+```json
+"references": [
+  {
+    "name": "Jane Smith",
+    "title": "Engineering Manager",
+    "relationship": "Former Manager",
+    "company": "Tech Corp",
+    "phone": "+1-555-987-6543",
+    "email": "jane.smith@techcorp.com"
+  }
+]
+```
+
+### Eligibility (Object) - NEW!
+
+These fields address common work authorization questions on job applications:
+
+```json
+"eligibility": {
+  "workAuthorization": "Yes",
+  "requiresSponsorship": "No",
+  "citizenship": "US Citizen",
+  "driversLicense": "Yes"
+}
+```
+
+### Preferences (Object) - NEW!
+
+These fields address salary expectations, availability, and other preferences:
+
+```json
+"preferences": {
+  "salaryExpectation": "$150,000 - $180,000",
+  "currentSalary": "$140,000",
+  "availableStartDate": "2 weeks notice",
+  "noticePeriod": "2 weeks",
+  "willingToRelocate": "Yes",
+  "willingToTravel": "Up to 25%",
+  "yearsOfExperience": "8+ years"
+}
+```
+
+### Emergency Contact (Object) - NEW!
+
+```json
+"emergencyContact": {
+  "name": "Mary Doe",
+  "phone": "+1-555-111-2222",
+  "relationship": "Spouse"
+}
+```
+
+### Diversity (Object) - NEW!
+
+Optional self-identification information (commonly asked in US applications):
+
+```json
+"diversity": {
+  "gender": "Prefer not to say",
+  "ethnicity": "Prefer not to say",
+  "veteranStatus": "I am not a veteran",
+  "disabilityStatus": "I do not have a disability"
+}
+```
+
+### Cover Letter (String) - NEW!
+
+```json
+"coverLetter": "Dear Hiring Manager,\n\nI am excited to apply..."
+```
+
 ### Summary (String)
 
 ```json
@@ -156,6 +269,7 @@ Or as a string:
 3. **Be Consistent**: Use the same format throughout
 4. **Validate JSON**: Use jsonlint.com to check for errors
 5. **Keep Updated**: Update your file regularly
+6. **Optional Sections**: Only include sections you need - all fields are optional except basic personal info
 
 ## Common Mistakes
 
@@ -230,6 +344,9 @@ The extension recognizes multiple field name variations:
 - `school` or `university` → School Name
 - `major`, `field`, or `fieldOfStudy` → Field of Study
 - `position`, `title`, or `jobTitle` → Job Title
+- `workAuthorization` or `authorizedToWork` → Work Authorization
+- `salaryExpectation`, `expectedSalary`, or `desiredSalary` → Salary Expectations
+- `availableStartDate` or `availability` → Available Start Date
 
 Use whichever names you prefer!
 

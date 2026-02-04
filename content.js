@@ -11,36 +11,96 @@
     lastName: ['last', 'lname', 'lastname', 'surname', 'family'],
     fullName: ['name', 'fullname', 'full_name', 'your name', 'applicant'],
     email: ['email', 'e-mail', 'mail', 'emailaddress'],
-    phone: ['phone', 'mobile', 'telephone', 'tel', 'contact', 'cell'],
-    address: ['address', 'street', 'address1', 'addr'],
-    city: ['city', 'town'],
+    phone: ['phone', 'mobile', 'telephone', 'tel', 'contact', 'cell', 'phonenumber'],
+    address: ['address', 'street', 'address1', 'addr', 'streetaddress'],
+    addressLine2: ['address2', 'apt', 'suite', 'unit', 'apartment'],
+    city: ['city', 'town', 'municipality'],
     state: ['state', 'province', 'region'],
     zipCode: ['zip', 'postal', 'postcode', 'zipcode', 'postalcode'],
-    country: ['country', 'nation'],
-    linkedin: ['linkedin', 'linked-in'],
-    website: ['website', 'site', 'webpage', 'url', 'homepage'],
-    portfolio: ['portfolio', 'work samples'],
-    github: ['github', 'git'],
+    country: ['country', 'nation', 'countryofresidence'],
+    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl'],
+    website: ['website', 'site', 'webpage', 'url', 'homepage', 'personalsite'],
+    portfolio: ['portfolio', 'work samples', 'worksamples', 'portfoliourl'],
+    github: ['github', 'git', 'githubprofile', 'githuburl'],
+    dateOfBirth: ['dob', 'dateofbirth', 'birth', 'birthday', 'birthdate'],
     
     // Work Experience
-    company: ['company', 'employer', 'organization', 'firm', 'workplace'],
-    position: ['position', 'title', 'job title', 'jobtitle', 'role', 'designation'],
-    startDate: ['start', 'from', 'begin', 'commenced'],
-    endDate: ['end', 'to', 'until', 'finished'],
-    current: ['current', 'present', 'ongoing'],
+    company: ['company', 'employer', 'organization', 'firm', 'workplace', 'companyname', 'employername'],
+    position: ['position', 'title', 'job title', 'jobtitle', 'role', 'designation', 'jobposition', 'currenttitle'],
+    startDate: ['start', 'from', 'begin', 'commenced', 'startdate', 'datefrom'],
+    endDate: ['end', 'to', 'until', 'finished', 'enddate', 'dateto'],
+    current: ['current', 'present', 'ongoing', 'currentlyworking', 'currentjob'],
+    workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties'],
+    
+    // Secondary work experience (previous job)
+    company2: ['previous company', 'previouscompany', 'company2', 'employer2', 'prioremployer'],
+    position2: ['previous position', 'previousposition', 'position2', 'title2', 'priortitle', 'previousrole'],
     
     // Education
-    school: ['school', 'university', 'college', 'institution', 'alma'],
-    degree: ['degree', 'qualification', 'diploma'],
-    major: ['major', 'field', 'study', 'specialization', 'concentration'],
-    gpa: ['gpa', 'grade', 'grades'],
-    graduationDate: ['graduation', 'graduated', 'completion'],
+    school: ['school', 'university', 'college', 'institution', 'alma', 'schoolname', 'universityname'],
+    degree: ['degree', 'qualification', 'diploma', 'degreetype', 'educationlevel'],
+    major: ['major', 'field', 'study', 'specialization', 'concentration', 'fieldofstudy', 'areaof'],
+    gpa: ['gpa', 'grade', 'grades', 'gradepoint', 'cgpa'],
+    graduationDate: ['graduation', 'graduated', 'completion', 'graduationdate', 'graduationyear'],
+    
+    // Secondary education
+    school2: ['highschool', 'high school', 'secondaryschool', 'school2'],
+    degree2: ['degree2', 'previousdegree'],
+    
+    // Work Authorization & Eligibility (Common pain point in job applications)
+    workAuthorization: ['authorized', 'authorization', 'eligible', 'eligibility', 'legallyauthorized', 'righttowork', 'workpermit', 'legally eligible', 'legaltowork'],
+    visaSponsorship: ['sponsorship', 'sponsor', 'visa', 'visastatus', 'requiresponsorship', 'needsponsorship', 'visarequired', 'immigrationstatus'],
+    citizenshipStatus: ['citizenship', 'citizen', 'nationalstatus', 'nationality'],
+    
+    // Salary & Compensation (Common pain point)
+    salaryExpectation: ['salary', 'compensation', 'pay', 'expectedsalary', 'desiredsalary', 'salaryexpectation', 'salaryrange', 'payexpectation', 'expectedcompensation', 'wage'],
+    currentSalary: ['currentsalary', 'currentpay', 'currentcompensation', 'presentsalary'],
+    
+    // Availability (Common pain point)
+    availableStartDate: ['available', 'availabledate', 'startdate', 'canstart', 'whenstart', 'earlieststart', 'availabilitydate', 'joiningdate'],
+    noticePeriod: ['notice', 'noticeperiod', 'noticerequired', 'currentnotice', 'noticedays'],
+    
+    // References (Common pain point)
+    referenceName: ['referencename', 'refname', 'reference1name', 'professionalreference'],
+    referencePhone: ['referencephone', 'refphone', 'reference1phone'],
+    referenceEmail: ['referenceemail', 'refemail', 'reference1email'],
+    referenceRelationship: ['referencerelationship', 'refrelation', 'relationship', 'reference1relationship'],
+    references: ['reference', 'referees', 'professionalreferences'],
+    
+    // Emergency Contact (Common in applications)
+    emergencyContactName: ['emergencycontact', 'emergencyname', 'emergency contact name', 'icename'],
+    emergencyContactPhone: ['emergencyphone', 'emergency contact phone', 'icephone', 'emergencycontactphone'],
+    emergencyContactRelationship: ['emergencyrelationship', 'emergencycontactrelation', 'icerelation'],
+    
+    // EEO/Diversity (Optional fields - common in US applications)
+    gender: ['gender', 'sex'],
+    ethnicity: ['ethnicity', 'race', 'ethnic'],
+    veteranStatus: ['veteran', 'veteranstatus', 'militarystatus', 'militaryservice'],
+    disabilityStatus: ['disability', 'disabilitystatus', 'disabled'],
+    
+    // Additional common fields
+    yearsOfExperience: ['yearsofexperience', 'experience', 'totalexperience', 'yearsexperience', 'experienceyears'],
+    highestEducation: ['highesteducation', 'educationlevel', 'highestdegree', 'highestqualification'],
+    driversLicense: ['driverslicense', 'license', 'drivinglicense', 'haslicense'],
+    willingToRelocate: ['relocate', 'relocation', 'willingtorelocate', 'opentorelocation', 'relocationwilling'],
+    willingToTravel: ['travel', 'travelrequired', 'willingtotravel', 'businesstravel', 'travelpercentage'],
+    
+    // Certifications
+    certification: ['certification', 'certificate', 'certifications', 'certname', 'professionalcert'],
+    certificationIssuer: ['certissuer', 'issuedby', 'certifyingbody', 'certificationissuer'],
+    
+    // Languages
+    language: ['language', 'languages', 'spokenlanguage', 'languageskill'],
+    languageProficiency: ['proficiency', 'fluency', 'languagelevel', 'languageproficiency'],
     
     // Other
-    summary: ['summary', 'objective', 'about', 'bio', 'description', 'profile'],
-    skills: ['skill', 'expertise', 'competenc', 'proficienc'],
-    references: ['reference', 'referees'],
-    coverLetter: ['cover', 'letter', 'motivation']
+    summary: ['summary', 'objective', 'about', 'bio', 'description', 'profile', 'professionalsummary', 'careerobjective'],
+    skills: ['skill', 'expertise', 'competenc', 'proficienc', 'technicalskills', 'keyskills'],
+    coverLetter: ['cover', 'letter', 'motivation', 'coverletter', 'motivationletter'],
+    
+    // Social Security / ID (handled carefully)
+    ssn: ['ssn', 'socialsecurity', 'social security'],
+    nationalId: ['nationalid', 'idnumber', 'governmentid']
   };
 
   // Listen for messages from popup
@@ -178,6 +238,11 @@
   function getResumeValue(key, resumeData) {
     // Map data keys to actual resume data structure
     const personal = resumeData.personal || {};
+    const preferences = resumeData.preferences || {};
+    const eligibility = resumeData.eligibility || {};
+    const emergencyContact = resumeData.emergencyContact || {};
+    const reference = resumeData.references?.[0] || {};
+    const diversity = resumeData.diversity || {};
     
     switch(key) {
       // Personal info
@@ -187,6 +252,7 @@
       case 'email': return personal.email;
       case 'phone': return personal.phone || personal.mobile;
       case 'address': return personal.address;
+      case 'addressLine2': return personal.addressLine2 || personal.apt || personal.suite;
       case 'city': return personal.city;
       case 'state': return personal.state;
       case 'zipCode': return personal.zipCode || personal.zip || personal.postalCode;
@@ -195,6 +261,7 @@
       case 'website': return personal.website;
       case 'portfolio': return personal.portfolio;
       case 'github': return personal.github;
+      case 'dateOfBirth': return personal.dateOfBirth || personal.dob;
       
       // Work experience (use most recent)
       case 'company': 
@@ -207,6 +274,14 @@
         return resumeData.workExperience?.[0]?.endDate;
       case 'current':
         return resumeData.workExperience?.[0]?.current;
+      case 'workDescription':
+        return resumeData.workExperience?.[0]?.description;
+      
+      // Secondary work experience (previous job)
+      case 'company2':
+        return resumeData.workExperience?.[1]?.company;
+      case 'position2':
+        return resumeData.workExperience?.[1]?.position || resumeData.workExperience?.[1]?.title;
       
       // Education (use most recent)
       case 'school':
@@ -220,13 +295,103 @@
       case 'graduationDate':
         return resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate;
       
+      // Secondary education
+      case 'school2':
+        return resumeData.education?.[1]?.school || resumeData.education?.[1]?.university;
+      case 'degree2':
+        return resumeData.education?.[1]?.degree;
+      
+      // Work Authorization & Eligibility
+      case 'workAuthorization':
+        return eligibility.workAuthorization || eligibility.authorizedToWork;
+      case 'visaSponsorship':
+        return eligibility.requiresSponsorship || eligibility.visaSponsorship;
+      case 'citizenshipStatus':
+        return eligibility.citizenship || eligibility.citizenshipStatus;
+      
+      // Salary & Compensation
+      case 'salaryExpectation':
+        return preferences.salaryExpectation || preferences.expectedSalary || preferences.desiredSalary;
+      case 'currentSalary':
+        return preferences.currentSalary || resumeData.workExperience?.[0]?.salary;
+      
+      // Availability
+      case 'availableStartDate':
+        return preferences.availableStartDate || preferences.startDate || preferences.availability;
+      case 'noticePeriod':
+        return preferences.noticePeriod || preferences.notice;
+      
+      // References (use first reference from array, or legacy format)
+      case 'referenceName':
+        return reference.name || (typeof resumeData.references === 'object' && !Array.isArray(resumeData.references) ? resumeData.references.name : null);
+      case 'referencePhone':
+        return reference.phone;
+      case 'referenceEmail':
+        return reference.email;
+      case 'referenceRelationship':
+        return reference.relationship || reference.title;
+      case 'references':
+        // For textarea/text fields asking for references
+        if (Array.isArray(resumeData.references)) {
+          return resumeData.references.map(r => `${r.name} - ${r.relationship || r.title} - ${r.phone || r.email}`).join('\n');
+        }
+        return typeof resumeData.references === 'string' ? resumeData.references : null;
+      
+      // Emergency Contact
+      case 'emergencyContactName':
+        return emergencyContact.name;
+      case 'emergencyContactPhone':
+        return emergencyContact.phone;
+      case 'emergencyContactRelationship':
+        return emergencyContact.relationship;
+      
+      // EEO/Diversity (Optional)
+      case 'gender':
+        return diversity.gender;
+      case 'ethnicity':
+        return diversity.ethnicity || diversity.race;
+      case 'veteranStatus':
+        return diversity.veteranStatus;
+      case 'disabilityStatus':
+        return diversity.disabilityStatus;
+      
+      // Additional common fields
+      case 'yearsOfExperience':
+        return preferences.yearsOfExperience || resumeData.yearsOfExperience;
+      case 'highestEducation':
+        return resumeData.education?.[0]?.degree;
+      case 'driversLicense':
+        return eligibility.driversLicense || eligibility.hasDriversLicense;
+      case 'willingToRelocate':
+        return preferences.willingToRelocate || preferences.relocate;
+      case 'willingToTravel':
+        return preferences.willingToTravel || preferences.travel;
+      
+      // Certifications
+      case 'certification':
+        return resumeData.certifications?.[0]?.name;
+      case 'certificationIssuer':
+        return resumeData.certifications?.[0]?.issuer;
+      
+      // Languages
+      case 'language':
+        return resumeData.languages?.[0]?.language;
+      case 'languageProficiency':
+        return resumeData.languages?.[0]?.proficiency;
+      
       // Other
       case 'summary':
         return resumeData.summary;
       case 'skills':
         return Array.isArray(resumeData.skills) ? resumeData.skills.join(', ') : resumeData.skills;
-      case 'references':
-        return resumeData.references;
+      case 'coverLetter':
+        return resumeData.coverLetter;
+      
+      // SSN / National ID (handle carefully - only fill if explicitly provided)
+      case 'ssn':
+        return personal.ssn;
+      case 'nationalId':
+        return personal.nationalId;
       
       default:
         return null;

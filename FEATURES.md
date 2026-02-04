@@ -8,23 +8,30 @@ Resume AutoFill is a smart Chrome extension that automatically fills job applica
 
 ### 1. Smart Field Detection
 - Analyzes form fields using multiple identification methods
-- Recognizes 100+ field name variations and patterns
+- Recognizes 150+ field name variations and patterns
 - Works with most job application forms across the web
 
 ### 2. Comprehensive Data Support
 The extension supports all major resume components:
-- **Personal Information**: Name, email, phone, address, city, state, zip
+- **Personal Information**: Name, email, phone, address (including line 2), city, state, zip, date of birth
 - **Professional Links**: LinkedIn, GitHub, portfolio, website
-- **Work Experience**: Company, position, dates, descriptions
-- **Education**: School, degree, major, GPA, graduation date
+- **Work Experience**: Company, position, dates, descriptions (supports multiple jobs)
+- **Education**: School, degree, major, GPA, graduation date (supports multiple degrees)
 - **Skills**: Technical skills, languages, certifications
-- **Summary**: Professional summary and objectives
+- **Summary & Cover Letter**: Professional summary, objectives, and cover letter content
+- **Work Authorization**: Legal work status, visa sponsorship requirements, citizenship
+- **Salary & Compensation**: Expected salary, current salary
+- **Availability**: Start date, notice period
+- **References**: Name, phone, email, relationship for professional references
+- **Emergency Contact**: Name, phone, relationship
+- **Diversity/EEO**: Gender, ethnicity, veteran status, disability (optional fields)
+- **Preferences**: Relocation willingness, travel percentage, years of experience
 
 ### 3. Flexible JSON Format
 - Easy-to-understand JSON structure
 - All fields are optional
 - Multiple data aliases supported (e.g., "firstName" or "fname")
-- Array support for work history and education
+- Array support for work history, education, and references
 
 ### 4. User-Friendly Interface
 - Clean, modern popup UI
@@ -89,8 +96,8 @@ The extension recognizes many variations of field names, including:
 - phone, mobile, telephone, tel, cell, contact number
 
 **Location:**
-- address, street, address1
-- city, town
+- address, street, address1, address line 2, apt, suite
+- city, town, municipality
 - state, province, region
 - zip, postal, postcode, zipcode
 - country, nation
@@ -101,6 +108,7 @@ The extension recognizes many variations of field names, including:
 - start date, from, begin
 - end date, to, until
 - current, present, ongoing
+- previous company, previous position (for second job entries)
 
 **Education:**
 - school, university, college, institution
@@ -114,6 +122,41 @@ The extension recognizes many variations of field names, including:
 - github, git
 - portfolio, work samples
 - website, homepage, url
+
+**Work Authorization & Eligibility (NEW):**
+- work authorization, authorized, eligible, legal to work
+- visa sponsorship, requires sponsorship, need sponsorship
+- citizenship, citizen, nationality
+
+**Salary & Compensation (NEW):**
+- salary expectation, expected salary, desired salary, compensation
+- current salary, current pay
+
+**Availability (NEW):**
+- available start date, availability, can start, when start
+- notice period, notice required, notice days
+
+**References (NEW):**
+- reference name, reference phone, reference email
+- reference relationship
+
+**Emergency Contact (NEW):**
+- emergency contact name, emergency phone
+- emergency relationship
+
+**Diversity/EEO (NEW - Optional):**
+- gender
+- ethnicity, race
+- veteran status
+- disability status
+
+**Additional Fields (NEW):**
+- years of experience, total experience
+- willing to relocate, relocation
+- willing to travel, business travel
+- certification, certificate
+- language, proficiency
+- cover letter
 
 And many more variations!
 
