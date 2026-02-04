@@ -322,8 +322,17 @@
         return preferences.noticePeriod || preferences.notice;
       
       // References (use first reference from array, or legacy format)
-      case 'referenceName':
-        return reference.name || (typeof resumeData.references === 'object' && !Array.isArray(resumeData.references) ? resumeData.references.name : null);
+      case 'referenceName': {
+        // Check array format first, then legacy object format
+        if (reference.name) {
+          return reference.name;
+        }
+        // Handle legacy single-object format
+        const legacyRef = typeof resumeData.references === 'object' && !Array.isArray(resumeData.references) 
+          ? resumeData.references 
+          : null;
+        return legacyRef?.name || null;
+      }
       case 'referencePhone':
         return reference.phone;
       case 'referenceEmail':
@@ -333,7 +342,14 @@
       case 'references':
         // For textarea/text fields asking for references
         if (Array.isArray(resumeData.references)) {
-          return resumeData.references.map(r => `${r.name} - ${r.relationship || r.title} - ${r.phone || r.email}`).join('\n');
+          return resumeData.references.map(r => {
+            const name = r.name || 'Unknown';
+            const relationship = r.relationship || r.title || '';
+            const contact = r.phone || r.email || '';
+            // Build reference string, filtering out empty parts
+            const parts = [name, relationship, contact].filter(p => p);
+            return parts.join(' - ');
+          }).join('\n');
         }
         return typeof resumeData.references === 'string' ? resumeData.references : null;
       
