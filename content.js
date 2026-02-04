@@ -422,13 +422,11 @@
       // For select elements, try to find matching option
       fillSelect(element, value);
     } else if (type === 'checkbox') {
-      // For checkboxes
-      element.checked = !!value;
+      // For checkboxes, handle both boolean values and string matching
+      fillCheckbox(element, value);
     } else if (type === 'radio') {
-      // For radio buttons
-      if (value && element.value.toLowerCase() === value.toString().toLowerCase()) {
-        element.checked = true;
-      }
+      // For radio buttons, match by value or label
+      fillRadio(element, value);
     } else {
       // For text inputs and textareas
       element.value = value;
@@ -444,6 +442,79 @@
     setTimeout(() => {
       element.style.backgroundColor = '';
     }, 2000);
+  }
+
+  function fillCheckbox(element, value) {
+    // Handle boolean values directly
+    if (typeof value === 'boolean') {
+      element.checked = value;
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+    
+    // Handle string values - need to match against checkbox value or label
+    const valueStr = value.toString().toLowerCase();
+    const elementValue = element.value ? element.value.toLowerCase() : '';
+    const label = findLabelForElement(element);
+    const labelLower = label ? label.toLowerCase() : '';
+    
+    // Check if the value matches the checkbox value or label
+    if (matchesValue(valueStr, elementValue) || matchesValue(valueStr, labelLower)) {
+      element.checked = true;
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+    
+    // Handle Yes/No/True/False type values for boolean-like checkboxes
+    const positiveValues = ['yes', 'true', '1', 'on', 'checked'];
+    if (positiveValues.includes(valueStr)) {
+      element.checked = true;
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function fillRadio(element, value) {
+    if (!value) return;
+    
+    const valueStr = value.toString().toLowerCase();
+    const elementValue = element.value ? element.value.toLowerCase() : '';
+    const label = findLabelForElement(element);
+    const labelLower = label ? label.toLowerCase() : '';
+    
+    // Check if the value matches the radio button value or its label
+    if (matchesValue(valueStr, elementValue) || matchesValue(valueStr, labelLower)) {
+      element.checked = true;
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function matchesValue(dataValue, elementValue) {
+    if (!dataValue || !elementValue) return false;
+    
+    // Exact match
+    if (dataValue === elementValue) return true;
+    
+    // Define equivalent value groups for demographic fields
+    // Each array contains values that should be considered equivalent
+    const equivalentGroups = [
+      // Gender values
+      ['m', 'male', 'man', 'boy', 'masculine'],
+      ['f', 'female', 'woman', 'girl', 'feminine'],
+      ['nb', 'nonbinary', 'non-binary', 'non binary', 'x', 'other', 'genderqueer'],
+      ['prefer not to say', 'prefer not', 'decline', 'decline to state', 'undisclosed', 'not disclosed'],
+      // Yes/No values
+      ['yes', 'y', 'true', '1'],
+      ['no', 'n', 'false', '0']
+    ];
+    
+    // Check if dataValue and elementValue belong to the same equivalence group
+    for (const group of equivalentGroups) {
+      const dataInGroup = group.some(v => v === dataValue);
+      const elemInGroup = group.some(v => v === elementValue);
+      if (dataInGroup && elemInGroup) return true;
+    }
+    
+    return false;
   }
 
   function fillSelect(selectElement, value) {
