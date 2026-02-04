@@ -402,6 +402,28 @@
     return null;
   }
 
+  // Normalize text by replacing separators (underscores, hyphens) with spaces
+  function normalizeText(text) {
+    return text.replace(/[_-]/g, ' ').toLowerCase();
+  }
+
+  // Check if a pattern matches the identifier as a whole word (not as a substring within another word)
+  function matchesAsWord(text, pattern) {
+    // Normalize both text and pattern to handle variations like job_title, job-title
+    const normalizedText = normalizeText(text);
+    const normalizedPattern = normalizeText(pattern);
+    
+    // Create a regex that matches the pattern as a whole word
+    // \b matches word boundaries (start/end of word)
+    const regex = new RegExp('\\b' + escapeRegex(normalizedPattern) + '\\b', 'i');
+    return regex.test(normalizedText);
+  }
+
+  // Escape special regex characters in a string
+  function escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   function matchFieldToData(identifiers, resumeData) {
     // Use priority-based matching to check more specific patterns first.
     // This helps avoid false positives where generic patterns like "phone" 
@@ -420,7 +442,9 @@
       
       for (const identifier of identifiers) {
         for (const pattern of patterns) {
-          if (identifier.includes(pattern) || pattern.includes(identifier)) {
+          // Use word boundary matching to avoid false positives
+          // e.g., 'tel' should not match 'hotel', 'title' should not match 'telephone'
+          if (matchesAsWord(identifier, pattern) || matchesAsWord(pattern, identifier)) {
             // Found a match, now get the actual data
             const value = getResumeValue(dataKey, resumeData);
             if (value !== null && value !== undefined) {
