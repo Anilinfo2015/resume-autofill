@@ -65,6 +65,18 @@
       display: inline;
       font-weight: normal;
     }
+    .radio-group {
+      margin-top: 10px;
+    }
+    .radio-group input[type="radio"] {
+      width: auto;
+      margin-right: 5px;
+    }
+    .radio-group label {
+      display: inline;
+      font-weight: normal;
+      margin-right: 20px;
+    }
     button {
       background: #667eea;
       color: white;
@@ -480,7 +492,7 @@
 
       <div class="row">
         <div class="form-group">
-          <label for="gender">Gender</label>
+          <label for="gender">Gender (Dropdown)</label>
           <select id="gender" name="gender">
             <option value="">Select...</option>
             <option value="Male">Male</option>
@@ -498,6 +510,37 @@
             <option value="I am not a veteran">I am not a veteran</option>
             <option value="Prefer not to say">Prefer not to say</option>
           </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Gender (Radio Buttons)</label>
+        <div class="radio-group">
+          <input type="radio" id="genderMale" name="genderRadio" value="Male">
+          <label for="genderMale">Male</label>
+          
+          <input type="radio" id="genderFemale" name="genderRadio" value="Female">
+          <label for="genderFemale">Female</label>
+          
+          <input type="radio" id="genderNonBinary" name="genderRadio" value="Non-binary">
+          <label for="genderNonBinary">Non-binary</label>
+          
+          <input type="radio" id="genderPreferNot" name="genderRadio" value="Prefer not to say">
+          <label for="genderPreferNot">Prefer not to say</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Sex (Radio Buttons with short values)</label>
+        <div class="radio-group">
+          <input type="radio" id="sexM" name="sex" value="m">
+          <label for="sexM">Male</label>
+          
+          <input type="radio" id="sexF" name="sex" value="f">
+          <label for="sexF">Female</label>
+          
+          <input type="radio" id="sexOther" name="sex" value="other">
+          <label for="sexOther">Other</label>
         </div>
       </div>
 
