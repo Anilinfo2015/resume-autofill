@@ -19,6 +19,7 @@ The extension supports all major resume components:
 - **Education**: School, degree, major, GPA, graduation date (supports multiple degrees)
 - **Skills**: Technical skills, languages, certifications
 - **Summary & Cover Letter**: Professional summary, objectives, and cover letter content
+- **Hobbies & Interests**: Personal hobbies, interests, or achievements outside of work/education
 - **Work Authorization**: Legal work status, visa sponsorship requirements, citizenship
 - **Salary & Compensation**: Expected salary, current salary
 - **Availability**: Start date, notice period
@@ -162,6 +163,7 @@ The extension recognizes many variations of field names, including:
 - certification, certificate
 - language, proficiency
 - cover letter
+- hobbies, interests, achievements outside of work, tell us about yourself
 
 And many more variations!
 

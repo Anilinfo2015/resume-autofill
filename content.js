@@ -1,261 +1,170 @@
 // Content script for intelligent form filling
 // This script analyzes form fields and matches them with resume data
+// Supports Shadow DOM traversal for modern job application platforms (e.g., SmartRecruiters)
 
 (function() {
   'use strict';
 
+  // Cache native value setters for React compatibility (these don't change at runtime)
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, 'value'
+  )?.set;
+  const nativeTextareaValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype, 'value'
+  )?.set;
+
+  // Keyboard event trigger values (arbitrary printable character to trigger framework event handlers)
+  const TRIGGER_KEY = 'a';
+  const TRIGGER_KEY_CODE = 'KeyA';
+
+  // Minimum pattern length for matching to avoid false positives with short patterns
+  const MIN_PATTERN_LENGTH = 4;
+
+  /**
+   * Recursively finds all form elements including those inside Shadow DOM
+   * This is essential for modern job application platforms like SmartRecruiters
+   * that use Shadow DOM encapsulation
+   * @param {Node} root - The root node to start searching from
+   * @returns {Element[]} - Array of form elements found
+   */
+  function getAllFormElements(root = document) {
+    const elements = [];
+    const selector = 'input, textarea, select';
+    
+    // Get elements from the current root
+    const rootElements = root.querySelectorAll(selector);
+    elements.push(...rootElements);
+    
+    // Recursively search through Shadow DOMs
+    const allElements = root.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.shadowRoot) {
+        const shadowElements = getAllFormElements(element.shadowRoot);
+        elements.push(...shadowElements);
+      }
+    }
+    
+    // Also search through iframes (same-origin only)
+    try {
+      const iframes = root.querySelectorAll('iframe');
+      for (const iframe of iframes) {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            const iframeElements = getAllFormElements(iframeDoc);
+            elements.push(...iframeElements);
+          }
+        } catch (e) {
+          // Cross-origin iframe, skip silently
+        }
+      }
+    } catch (e) {
+      // Unable to access iframes, skip silently
+    }
+    
+    return elements;
+  }
+
   // Field mapping patterns - maps common field patterns to resume data
   const FIELD_PATTERNS = {
     // Personal Information
-    salutation: ['salutation', 'honorific', 'prefix', 'nametitle', 'name_title', 'name title'],
-    firstName: ['first', 'fname', 'firstname', 'given', 'forename'],
-    lastName: ['last', 'lname', 'lastname', 'surname', 'family'],
-    fullName: ['name', 'fullname', 'full_name', 'your name', 'applicant'],
-    email: ['email', 'e-mail', 'mail', 'emailaddress'],
-    phone: ['phone', 'mobile', 'telephone', 'tel', 'contact', 'cell', 'phonenumber'],
-    // Phone country code / extension (dropdown or separate field)
-    phoneCountryCode: ['countrycode', 'country_code', 'phonecode', 'phone_code', 'dialcode', 'dial_code', 'extension', 'ext', 'phone_extension', 'phoneextension', 'isdcode', 'isd_code', 'areacode', 'area_code', 'prefix'],
-    // Phone number without country code (local number)
-    phoneLocal: ['phonelocal', 'phone_local', 'localnumber', 'local_number', 'nationalphone', 'national_phone', 'localphonenumber', 'local_phone_number'],
-    address: ['address', 'street', 'address1', 'addr', 'streetaddress'],
-    addressLine2: ['address2', 'apt', 'suite', 'unit', 'apartment'],
-    city: ['city', 'town', 'municipality'],
-    state: ['state', 'province', 'region'],
-    zipCode: ['zip', 'postal', 'postcode', 'zipcode', 'postalcode'],
-    country: ['country', 'nation', 'countryofresidence'],
-    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl', 'linkedinlink'],
-    website: ['website', 'site', 'webpage', 'url', 'homepage', 'personalsite', 'personalurl', 'personalwebsite'],
-    portfolio: ['portfolio', 'work samples', 'worksamples', 'portfoliourl', 'portfoliolink', 'portfoliosite', 'workportfolio'],
-    github: ['github', 'git', 'githubprofile', 'githuburl', 'githublink', 'gitprofile'],
-    dateOfBirth: ['dob', 'dateofbirth', 'birth', 'birthday', 'birthdate'],
+    firstName: ['firstname', 'first_name', 'fname', 'givenname', 'forename', 'first name'],
+    lastName: ['lastname', 'last_name', 'lname', 'surname', 'familyname', 'family name', 'last name'],
+    fullName: ['fullname', 'full_name', 'yourname', 'applicantname', 'candidatename', 'your name', 'full name'],
+    email: ['email', 'e-mail', 'emailaddress', 'email_address', 'useremail', 'contactemail'],
+    phone: ['phone', 'mobile', 'telephone', 'phonenumber', 'phone_number', 'contactphone', 'cellphone', 'mobilenumber'],
+    address: ['address', 'street', 'address1', 'streetaddress', 'street_address', 'homeaddress', 'home_address'],
+    addressLine2: ['address2', 'addressline2', 'suite', 'apartment', 'aptnum', 'unitnumber'],
+    city: ['city', 'town', 'municipality', 'cityname', 'city/town', 'citytown', 'city_town'],
+    state: ['state', 'province', 'region', 'stateprovince'],
+    zipCode: ['zipcode', 'zip_code', 'postal', 'postcode', 'postalcode', 'postal_code', 'postcode/zipcode', 'postalcode/zipcode'],
+    country: ['country', 'nation', 'countryofresidence', 'countryname'],
+    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl', 'linkedin_url'],
+    website: ['website', 'personalsite', 'homepage', 'personalwebsite', 'weburl'],
+    portfolio: ['portfolio', 'portfoliourl', 'worksamples', 'portfolio_url'],
+    github: ['github', 'githubprofile', 'githuburl', 'github_url'],
+    dateOfBirth: ['dateofbirth', 'date_of_birth', 'birthdate', 'birthday', 'dob'],
     
     // Work Experience
-    company: ['company', 'employer', 'organization', 'firm', 'workplace', 'companyname', 'employername'],
-    position: ['position', 'title', 'job title', 'jobtitle', 'role', 'designation', 'jobposition', 'currenttitle'],
-    startDate: ['start', 'from', 'begin', 'commenced', 'startdate', 'datefrom'],
-    endDate: ['end', 'to', 'until', 'finished', 'enddate', 'dateto'],
-    // Separate month and year fields for start date
-    startMonth: ['startmonth', 'start_month', 'frommonth', 'from_month', 'beginmonth', 'begin_month'],
-    startYear: ['startyear', 'start_year', 'fromyear', 'from_year', 'beginyear', 'begin_year'],
-    // Separate month and year fields for end date
-    endMonth: ['endmonth', 'end_month', 'tomonth', 'to_month', 'untilmonth', 'until_month'],
-    endYear: ['endyear', 'end_year', 'toyear', 'to_year', 'untilyear', 'until_year'],
-    current: ['current', 'present', 'ongoing', 'currentlyworking', 'currentjob'],
-    workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties'],
+    company: ['company', 'employer', 'organization', 'companyname', 'employername', 'workplace', 'firmname'],
+    position: ['position', 'jobtitle', 'job_title', 'role', 'designation', 'jobposition', 'currenttitle', 'positiontitle'],
+    startDate: ['startdate', 'start_date', 'datefrom', 'fromdate', 'begindate', 'commenced'],
+    endDate: ['enddate', 'end_date', 'dateto', 'todate', 'finishdate', 'finished'],
+    current: ['currentjob', 'currentlyworking', 'currentemployer', 'currentlyemployed', 'presentemployer', 'currentposition'],
+    workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties', 'roleresponsibilities'],
     
     // Secondary work experience (previous job)
-    company2: ['previous company', 'previouscompany', 'company2', 'employer2', 'prioremployer'],
-    position2: ['previous position', 'previousposition', 'position2', 'title2', 'priortitle', 'previousrole'],
+    company2: ['previouscompany', 'company2', 'employer2', 'prioremployer', 'formeremployer', 'previous company'],
+    position2: ['previousposition', 'position2', 'title2', 'priortitle', 'previousrole', 'formertitle', 'previous position'],
+    workDescription2: ['jobdescription2', 'responsibilities2', 'duties2', 'workdescription2', 'jobduties2', 'previousjobdescription', 'previousresponsibilities'],
     
     // Education
-    school: ['school', 'university', 'college', 'institution', 'alma', 'schoolname', 'universityname'],
-    degree: ['degree', 'qualification', 'diploma', 'degreetype', 'educationlevel'],
-    major: ['major', 'field', 'study', 'specialization', 'concentration', 'fieldofstudy', 'areaof'],
-    gpa: ['gpa', 'grade', 'grades', 'gradepoint', 'cgpa'],
-    graduationDate: ['graduation', 'graduated', 'completion', 'graduationdate', 'graduationyear'],
-    // Separate month and year fields for graduation date
-    graduationMonth: ['graduationmonth', 'graduation_month', 'completionmonth', 'completion_month'],
-    graduationYear: ['graduationyear', 'graduation_year', 'completionyear', 'completion_year', 'classof', 'class_of'],
-    // Separate education start/end fields
-    educationStartMonth: ['educationstartmonth', 'education_start_month'],
-    educationStartYear: ['educationstartyear', 'education_start_year'],
-    educationEndMonth: ['educationendmonth', 'education_end_month'],
-    educationEndYear: ['educationendyear', 'education_end_year'],
+    school: ['school', 'university', 'college', 'institution', 'schoolname', 'universityname', 'collegename', 'almamater'],
+    degree: ['degree', 'qualification', 'diploma', 'degreetype', 'educationlevel', 'degreename'],
+    major: ['major', 'fieldofstudy', 'field_of_study', 'specialization', 'concentration', 'studyfield', 'areaof'],
+    gpa: ['gpa', 'gradepoint', 'gradepointaverage', 'cgpa', 'grades'],
+    graduationDate: ['graduation', 'graduationdate', 'graduation_date', 'graduationyear', 'completiondate'],
     
     // Secondary education
-    school2: ['highschool', 'high school', 'secondaryschool', 'school2'],
-    degree2: ['degree2', 'previousdegree'],
+    school2: ['highschool', 'secondaryschool', 'school2', 'previousschool', 'high school'],
+    degree2: ['degree2', 'previousdegree', 'seconddegree'],
     
     // Work Authorization & Eligibility (Common pain point in job applications)
-    workAuthorization: ['authorized', 'authorization', 'eligible', 'eligibility', 'legallyauthorized', 'righttowork', 'workpermit', 'legally eligible', 'legaltowork'],
-    visaSponsorship: ['sponsorship', 'sponsor', 'visa', 'visastatus', 'requiresponsorship', 'needsponsorship', 'visarequired', 'immigrationstatus'],
-    citizenshipStatus: ['citizenship', 'citizen', 'nationalstatus', 'nationality'],
+    workAuthorization: ['authorized', 'authorization', 'legallyauthorized', 'righttowork', 'workpermit', 'legaltowork', 'workeligibility', 'legally eligible', 'right to work'],
+    visaSponsorship: ['sponsorship', 'sponsor', 'visastatus', 'requiresponsorship', 'needsponsorship', 'visarequired', 'immigrationstatus', 'visasponsorship'],
+    citizenshipStatus: ['citizenship', 'citizenshipstatus', 'nationalstatus', 'nationality'],
     
     // Salary & Compensation (Common pain point)
-    salaryExpectation: ['salary', 'compensation', 'pay', 'expectedsalary', 'desiredsalary', 'salaryexpectation', 'salaryrange', 'payexpectation', 'expectedcompensation', 'wage'],
-    currentSalary: ['currentsalary', 'currentpay', 'currentcompensation', 'presentsalary'],
+    salaryExpectation: ['salary', 'compensation', 'expectedsalary', 'desiredsalary', 'salaryexpectation', 'salaryrange', 'payexpectation', 'expectedcompensation', 'wagerate'],
+    currentSalary: ['currentsalary', 'currentpay', 'currentcompensation', 'presentsalary', 'current_salary'],
     
     // Availability (Common pain point)
-    availableStartDate: ['available', 'availabledate', 'startdate', 'canstart', 'whenstart', 'earlieststart', 'availabilitydate', 'joiningdate'],
-    noticePeriod: ['notice', 'noticeperiod', 'noticerequired', 'currentnotice', 'noticedays'],
+    availableStartDate: ['availabledate', 'canstart', 'whenstart', 'earlieststart', 'availabilitydate', 'joiningdate', 'available_date', 'startavailability'],
+    noticePeriod: ['noticeperiod', 'notice_period', 'noticerequired', 'currentnotice', 'noticedays'],
     
     // References (Common pain point)
-    referenceName: ['referencename', 'refname', 'reference1name', 'professionalreference'],
-    referencePhone: ['referencephone', 'refphone', 'reference1phone'],
-    referenceEmail: ['referenceemail', 'refemail', 'reference1email'],
-    referenceRelationship: ['referencerelationship', 'refrelation', 'relationship', 'reference1relationship'],
-    references: ['reference', 'referees', 'professionalreferences'],
+    referenceName: ['referencename', 'refname', 'reference1name', 'professionalreference', 'reference_name'],
+    referencePhone: ['referencephone', 'refphone', 'reference1phone', 'reference_phone'],
+    referenceEmail: ['referenceemail', 'refemail', 'reference1email', 'reference_email'],
+    referenceRelationship: ['referencerelationship', 'refrelation', 'reference1relationship', 'reference_relationship'],
+    references: ['references', 'referees', 'professionalreferences', 'referencelist'],
     
     // Emergency Contact (Common in applications)
-    emergencyContactName: ['emergencycontact', 'emergencyname', 'emergency contact name', 'icename'],
-    emergencyContactPhone: ['emergencyphone', 'emergency contact phone', 'icephone', 'emergencycontactphone'],
-    emergencyContactRelationship: ['emergencyrelationship', 'emergencycontactrelation', 'icerelation'],
+    emergencyContactName: ['emergencycontact', 'emergencyname', 'icename', 'emergencycontactname', 'emergency contact name'],
+    emergencyContactPhone: ['emergencyphone', 'icephone', 'emergencycontactphone', 'emergency contact phone'],
+    emergencyContactRelationship: ['emergencyrelationship', 'emergencycontactrelation', 'icerelation', 'emergencycontactrelationship'],
     
     // EEO/Diversity (Optional fields - common in US applications)
-    gender: ['gender', 'sex'],
-    ethnicity: ['ethnicity', 'race', 'ethnic'],
-    veteranStatus: ['veteran', 'veteranstatus', 'militarystatus', 'militaryservice'],
-    disabilityStatus: ['disability', 'disabilitystatus', 'disabled'],
+    gender: ['gender', 'genderidentity', 'gender_identity'],
+    ethnicity: ['ethnicity', 'race', 'ethnicbackground', 'ethnic_background', 'ethnicorigin'],
+    veteranStatus: ['veteran', 'veteranstatus', 'militarystatus', 'militaryservice', 'veteran_status'],
+    disabilityStatus: ['disability', 'disabilitystatus', 'disability_status', 'disabled'],
     
     // Additional common fields
-    yearsOfExperience: ['yearsofexperience', 'experience', 'totalexperience', 'yearsexperience', 'experienceyears'],
-    highestEducation: ['highesteducation', 'educationlevel', 'highestdegree', 'highestqualification'],
-    driversLicense: ['driverslicense', 'license', 'drivinglicense', 'haslicense'],
-    willingToRelocate: ['relocate', 'relocation', 'willingtorelocate', 'opentorelocation', 'relocationwilling'],
-    willingToTravel: ['travel', 'travelrequired', 'willingtotravel', 'businesstravel', 'travelpercentage'],
+    yearsOfExperience: ['yearsofexperience', 'years_of_experience', 'totalexperience', 'yearsexperience', 'experienceyears', 'workexperience'],
+    highestEducation: ['highesteducation', 'educationlevel', 'highestdegree', 'highestqualification', 'highest_education'],
+    driversLicense: ['driverslicense', 'drivinglicense', 'haslicense', 'drivers_license', 'drivinglicence'],
+    willingToRelocate: ['relocate', 'relocation', 'willingtorelocate', 'opentorelocation', 'relocationwilling', 'canrelocate'],
+    willingToTravel: ['travelrequired', 'willingtotravel', 'businesstravel', 'travelpercentage', 'cantravel', 'travelwilling'],
     
     // Certifications
-    certification: ['certification', 'certificate', 'certifications', 'certname', 'professionalcert'],
-    certificationIssuer: ['certissuer', 'issuedby', 'certifyingbody', 'certificationissuer'],
+    certification: ['certification', 'certificate', 'certifications', 'certname', 'professionalcert', 'certificationname'],
+    certificationIssuer: ['certissuer', 'issuedby', 'certifyingbody', 'certificationissuer', 'issuerorganization'],
     
     // Languages
-    language: ['language', 'languages', 'spokenlanguage', 'languageskill'],
-    languageProficiency: ['proficiency', 'fluency', 'languagelevel', 'languageproficiency'],
+    language: ['language', 'languages', 'spokenlanguage', 'languageskill', 'languageproficiency'],
+    languageProficiency: ['proficiency', 'fluency', 'languagelevel', 'languagefluency', 'proficiencylevel'],
     
     // Other
-    summary: ['summary', 'objective', 'about', 'bio', 'description', 'profile', 'professionalsummary', 'careerobjective'],
-    skills: ['skill', 'expertise', 'competenc', 'proficienc', 'technicalskills', 'keyskills'],
-    coverLetter: ['cover', 'letter', 'motivation', 'coverletter', 'motivationletter'],
+    summary: ['summary', 'objective', 'about', 'biography', 'professionalsummary', 'careerobjective', 'professionalprofile', 'aboutme'],
+    skills: ['skills', 'expertise', 'competencies', 'proficiencies', 'technicalskills', 'keyskills', 'skillset'],
+    coverLetter: ['coverletter', 'cover_letter', 'motivationletter', 'motivation_letter', 'coveringletter'],
+    hobbiesInterests: ['hobbies', 'interests', 'hobby', 'interest', 'achievements outside', 'outside of work', 'bit about yourself', 'about yourself', 'personal interests', 'personalinterests', 'extracurricular', 'passions', 'leisure', 'freetime', 'spare time'],
     
     // Social Security / ID (handled carefully)
-    ssn: ['ssn', 'socialsecurity', 'social security'],
-    nationalId: ['nationalid', 'idnumber', 'governmentid']
+    ssn: ['ssn', 'socialsecurity', 'social security', 'socialsecuritynumber'],
+    nationalId: ['nationalid', 'idnumber', 'governmentid', 'national_id', 'nationalidnumber']
   };
-
-  // Month name constants to avoid duplication
-  const MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 
-                       'july', 'august', 'september', 'october', 'november', 'december'];
-  const SHORT_MONTH_NAMES = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
-                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-  const MONTH_NAMES_CAPITALIZED = ['January', 'February', 'March', 'April', 'May', 'June',
-                                   'July', 'August', 'September', 'October', 'November', 'December'];
-
-  // Priority order for pattern matching - more specific patterns first
-  const PRIORITY_PATTERNS = [
-    // Most specific phone patterns first
-    'phoneCountryCode', 'phoneLocal',
-    // Most specific date patterns first  
-    'startMonth', 'startYear', 'endMonth', 'endYear',
-    'graduationMonth', 'graduationYear',
-    'educationStartMonth', 'educationStartYear', 'educationEndMonth', 'educationEndYear'
-  ];
-
-  // Helper function to format phone number for display
-  // Handles various digit lengths and formats them appropriately
-  function formatLocalNumber(digits) {
-    // Format based on digit count
-    if (digits.length === 10) {
-      // US format: XXX-XXX-XXXX
-      return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-    } else if (digits.length === 7) {
-      // Local format: XXX-XXXX
-      return digits.replace(/(\d{3})(\d{4})/, '$1-$2');
-    } else if (digits.length === 11 && digits.startsWith('1')) {
-      // US with leading '1' - extract just the local 10 digits
-      // This is intentional: when filling a "local number" field, we want just the local part
-      return digits.replace(/1(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-    }
-    // Return as-is for other lengths
-    return digits;
-  }
-
-  // Helper function to parse phone number into country code and local number
-  function parsePhoneNumber(phone) {
-    if (!phone) return { countryCode: null, localNumber: null };
-    
-    // Remove all non-digit characters except leading +
-    let cleaned = phone.trim();
-    
-    // Check if it starts with a + (explicit country code indicator)
-    if (cleaned.startsWith('+')) {
-      const countryCodeMatch = cleaned.match(/^\+(\d{1,3})[-.\s]?(.*)$/);
-      
-      if (countryCodeMatch) {
-        const potentialCode = countryCodeMatch[1];
-        const rest = countryCodeMatch[2].replace(/[-.\s()]/g, '');
-        
-        // Country codes are 1-3 digits; if remaining is >= 7 digits, treat as country code
-        if (rest.length >= 7) {
-          return {
-            countryCode: '+' + potentialCode,
-            localNumber: formatLocalNumber(rest)
-          };
-        }
-      }
-    }
-    
-    // No country code detected - return the phone number as local number
-    const digits = phone.replace(/\D/g, '');
-    return {
-      countryCode: null,
-      localNumber: formatLocalNumber(digits) || phone
-    };
-  }
-
-  // Helper function to parse date into month and year
-  function parseDate(dateStr) {
-    if (!dateStr) return { month: null, year: null };
-    
-    // Handle "Present" or similar
-    const lowerDate = dateStr.toLowerCase();
-    if (lowerDate === 'present' || lowerDate === 'current' || lowerDate === 'ongoing') {
-      return { month: null, year: null, isPresent: true };
-    }
-    
-    // Try to parse YYYY-MM format
-    const yyyyMmMatch = dateStr.match(/^(\d{4})[-/](\d{1,2})$/);
-    if (yyyyMmMatch) {
-      return {
-        year: yyyyMmMatch[1],
-        month: yyyyMmMatch[2].padStart(2, '0')
-      };
-    }
-    
-    // Try to parse MM/YYYY format
-    const mmYyyyMatch = dateStr.match(/^(\d{1,2})[-/](\d{4})$/);
-    if (mmYyyyMatch) {
-      return {
-        month: mmYyyyMatch[1].padStart(2, '0'),
-        year: mmYyyyMatch[2]
-      };
-    }
-    
-    // Try to parse just a year
-    const yearMatch = dateStr.match(/^\d{4}$/);
-    if (yearMatch) {
-      return {
-        year: dateStr,
-        month: null
-      };
-    }
-    
-    // Try to parse Month Year format (e.g., "January 2020")
-    const monthYearMatch = dateStr.match(/^([a-zA-Z]+)\s+(\d{4})$/);
-    if (monthYearMatch) {
-      const monthName = monthYearMatch[1].toLowerCase();
-      let monthIndex = MONTH_NAMES.indexOf(monthName);
-      if (monthIndex === -1) {
-        monthIndex = SHORT_MONTH_NAMES.indexOf(monthName.substring(0, 3));
-      }
-      if (monthIndex !== -1) {
-        return {
-          month: String(monthIndex + 1).padStart(2, '0'),
-          year: monthYearMatch[2]
-        };
-      }
-    }
-    
-    return { month: null, year: null };
-  }
-
-  // Helper function to get month name from month number
-  function getMonthName(monthNum) {
-    const num = parseInt(monthNum, 10);
-    if (num >= 1 && num <= 12) {
-      return MONTH_NAMES_CAPITALIZED[num - 1];
-    }
-    return null;
-  }
 
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -279,24 +188,14 @@
   function fillFormWithData(resumeData) {
     let fieldsFound = 0;
     
-    // Find all input, textarea, and select elements
-    const formElements = document.querySelectorAll('input, textarea, select');
+    // Find all input, textarea, and select elements (including Shadow DOM)
+    const formElements = getAllFormElements();
     
     formElements.forEach(element => {
       // Skip hidden, submit, button, and already filled fields (unless empty)
       const type = element.type ? element.type.toLowerCase() : '';
       if (type === 'hidden' || type === 'submit' || type === 'button' || type === 'image') {
         return;
-      }
-
-      // Special handling for salutation/title dropdowns
-      if (element.tagName.toLowerCase() === 'select' && isSalutationDropdown(element)) {
-        const salutationValue = resumeData.personal?.title || resumeData.personal?.salutation;
-        if (salutationValue) {
-          fillField(element, salutationValue);
-          fieldsFound++;
-          return;
-        }
       }
 
       // Get field identifiers
@@ -312,28 +211,6 @@
     return fieldsFound;
   }
 
-  // Helper function to detect if a select dropdown is a salutation/title dropdown
-  // Minimum number of salutation options required to consider it a salutation dropdown
-  const MIN_SALUTATION_MATCHES = 2;
-  
-  function isSalutationDropdown(selectElement) {
-    const salutationValues = ['mr', 'mrs', 'miss', 'ms', 'dr', 'prof', 'sir', 'madam'];
-    let salutationMatches = 0;
-    
-    for (let option of selectElement.options) {
-      // Normalize option values by removing periods and converting to lowercase
-      const optionValue = option.value.toLowerCase().trim().replace('.', '');
-      const optionText = option.text.toLowerCase().trim().replace('.', '');
-      
-      if (salutationValues.some(s => optionValue === s || optionText === s)) {
-        salutationMatches++;
-      }
-    }
-    
-    // A dropdown with at least MIN_SALUTATION_MATCHES salutation options is considered a salutation dropdown
-    return salutationMatches >= MIN_SALUTATION_MATCHES;
-  }
-
   function getFieldIdentifiers(element) {
     // Collect all possible identifiers for the field
     const identifiers = [];
@@ -346,6 +223,20 @@
       identifiers.push(element.getAttribute('aria-label').toLowerCase());
     }
     if (element.title) identifiers.push(element.title.toLowerCase());
+    
+    // Get from data attributes (common in React/Angular apps)
+    if (element.getAttribute('data-testid')) {
+      identifiers.push(element.getAttribute('data-testid').toLowerCase());
+    }
+    if (element.getAttribute('data-qa')) {
+      identifiers.push(element.getAttribute('data-qa').toLowerCase());
+    }
+    if (element.getAttribute('data-automation-id')) {
+      identifiers.push(element.getAttribute('data-automation-id').toLowerCase());
+    }
+    if (element.getAttribute('data-field')) {
+      identifiers.push(element.getAttribute('data-field').toLowerCase());
+    }
     
     // Get from associated label
     const label = findLabelForElement(element);
@@ -362,9 +253,12 @@
   }
 
   function findLabelForElement(element) {
+    // Get the root node (handles Shadow DOM)
+    const root = element.getRootNode();
+    
     // Try to find label by 'for' attribute
     if (element.id) {
-      const label = document.querySelector(`label[for="${element.id}"]`);
+      const label = root.querySelector ? root.querySelector(`label[for="${element.id}"]`) : null;
       if (label) return label.textContent.trim();
     }
     
@@ -403,35 +297,77 @@
   }
 
   function matchFieldToData(identifiers, resumeData) {
-    // Use priority-based matching to check more specific patterns first.
-    // This helps avoid false positives where generic patterns like "phone" 
-    // might match a country code field before the specific "phoneCountryCode" pattern.
+    // Try to match field identifiers with resume data patterns
+    // Use a scoring system to find the best match, not just the first match
+    let bestMatch = null;
+    let bestScore = 0;
     
-    // Build priority order using the pre-defined PRIORITY_PATTERNS
-    const priorityOrder = [
-      ...PRIORITY_PATTERNS,
-      // Then the more general patterns
-      ...Object.keys(FIELD_PATTERNS).filter(k => !PRIORITY_PATTERNS.includes(k))
-    ];
-    
-    for (const dataKey of priorityOrder) {
-      const patterns = FIELD_PATTERNS[dataKey];
-      if (!patterns) continue;
-      
+    for (const [dataKey, patterns] of Object.entries(FIELD_PATTERNS)) {
       for (const identifier of identifiers) {
         for (const pattern of patterns) {
-          if (identifier.includes(pattern) || pattern.includes(identifier)) {
-            // Found a match, now get the actual data
+          const score = getMatchScore(identifier, pattern);
+          if (score > bestScore) {
             const value = getResumeValue(dataKey, resumeData);
             if (value !== null && value !== undefined) {
-              return value;
+              bestScore = score;
+              bestMatch = value;
             }
           }
         }
       }
     }
     
-    return null;
+    return bestMatch;
+  }
+  
+  function getMatchScore(identifier, pattern) {
+    // Normalize both strings: remove spaces, underscores, hyphens, and forward slashes, convert to lowercase
+    const normalizedIdentifier = identifier.replace(/[\s_\-\/]/g, '').toLowerCase();
+    const normalizedPattern = pattern.replace(/[\s_\-\/]/g, '').toLowerCase();
+    
+    // Exact match gets highest score
+    if (normalizedIdentifier === normalizedPattern) {
+      return 100;
+    }
+    
+    // Special handling for known short patterns that are unambiguous
+    // These domain-specific abbreviations are safe to match even though they're short:
+    // - 'gpa': Grade Point Average - never confused with other fields
+    // - 'dob': Date of Birth - specific identifier
+    // - 'ssn': Social Security Number - specific identifier
+    // - 'ice': In Case of Emergency (contact) - specific identifier
+    const unambiguousShortPatterns = ['gpa', 'dob', 'ssn', 'ice'];
+    const isUnambiguousShort = unambiguousShortPatterns.includes(normalizedPattern);
+    
+    // Check if identifier contains the pattern
+    if (normalizedIdentifier.includes(normalizedPattern)) {
+      // Only match if pattern is significant (at least MIN_PATTERN_LENGTH characters)
+      // OR if it's an unambiguous short pattern
+      // This prevents short patterns like "to", "from", "name" from matching incorrectly
+      if (normalizedPattern.length >= MIN_PATTERN_LENGTH || isUnambiguousShort) {
+        // Score based on how much of the identifier is covered by the pattern
+        // Longer patterns relative to identifier length get higher scores
+        // Math.min caps at 1.0 for defensive programming - normally <= 1 when pattern is in identifier
+        const coverage = Math.min(1, normalizedPattern.length / normalizedIdentifier.length);
+        return 50 + (coverage * 40); // Score range: 50-90
+      }
+    }
+    
+    // Reverse match (pattern contains identifier) - only for substantial identifiers
+    // This helps when a field has a very specific short name that matches our pattern
+    // Use a higher threshold (6 chars) for reverse match to be more conservative
+    const MIN_REVERSE_MATCH_LENGTH = 6;
+    if (normalizedPattern.includes(normalizedIdentifier)) {
+      if (normalizedIdentifier.length >= MIN_REVERSE_MATCH_LENGTH) {
+        // Math.min caps at 1.0 to prevent score exceeding range when identifier is much
+        // shorter than pattern (e.g., identifier 'github' vs pattern 'githubprofileurl')
+        const coverage = Math.min(1, normalizedIdentifier.length / normalizedPattern.length);
+        return 30 + (coverage * 30); // Score range: 30-60
+      }
+    }
+    
+    // No match
+    return 0;
   }
 
   function getResumeValue(key, resumeData) {
@@ -445,22 +381,11 @@
     
     switch(key) {
       // Personal info
-      case 'salutation': return personal.title || personal.salutation;
       case 'firstName': return personal.firstName;
       case 'lastName': return personal.lastName;
       case 'fullName': return personal.fullName || `${personal.firstName || ''} ${personal.lastName || ''}`.trim();
       case 'email': return personal.email;
       case 'phone': return personal.phone || personal.mobile;
-      // Phone country code (for dropdown or separate field)
-      case 'phoneCountryCode': {
-        const phoneData = parsePhoneNumber(personal.phone || personal.mobile);
-        return phoneData.countryCode;
-      }
-      // Phone local number (without country code)
-      case 'phoneLocal': {
-        const phoneData = parsePhoneNumber(personal.phone || personal.mobile);
-        return phoneData.localNumber;
-      }
       case 'address': return personal.address;
       case 'addressLine2': return personal.addressLine2 || personal.apt || personal.suite;
       case 'city': return personal.city;
@@ -482,28 +407,14 @@
         return resumeData.workExperience?.[0]?.startDate;
       case 'endDate':
         return resumeData.workExperience?.[0]?.endDate;
-      // Separate month and year for work experience start date
-      case 'startMonth': {
-        const dateData = parseDate(resumeData.workExperience?.[0]?.startDate);
-        return dateData.month;
+      case 'current': {
+        // Convert boolean to "Yes"/"No" strings for better radio button matching
+        // The actual field type handling (checkbox vs radio) is done in fillField()
+        const currentValue = resumeData.workExperience?.[0]?.current;
+        if (currentValue === true) return "Yes";
+        if (currentValue === false) return "No";
+        return currentValue;
       }
-      case 'startYear': {
-        const dateData = parseDate(resumeData.workExperience?.[0]?.startDate);
-        return dateData.year;
-      }
-      // Separate month and year for work experience end date
-      case 'endMonth': {
-        const dateData = parseDate(resumeData.workExperience?.[0]?.endDate);
-        if (dateData.isPresent) return null; // Don't fill if current
-        return dateData.month;
-      }
-      case 'endYear': {
-        const dateData = parseDate(resumeData.workExperience?.[0]?.endDate);
-        if (dateData.isPresent) return null; // Don't fill if current
-        return dateData.year;
-      }
-      case 'current':
-        return resumeData.workExperience?.[0]?.current;
       case 'workDescription':
         return resumeData.workExperience?.[0]?.description;
       
@@ -512,6 +423,8 @@
         return resumeData.workExperience?.[1]?.company;
       case 'position2':
         return resumeData.workExperience?.[1]?.position || resumeData.workExperience?.[1]?.title;
+      case 'workDescription2':
+        return resumeData.workExperience?.[1]?.description;
       
       // Education (use most recent)
       case 'school':
@@ -524,32 +437,6 @@
         return resumeData.education?.[0]?.gpa;
       case 'graduationDate':
         return resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate;
-      // Separate month and year for graduation date
-      case 'graduationMonth': {
-        const dateData = parseDate(resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate);
-        return dateData.month;
-      }
-      case 'graduationYear': {
-        const dateData = parseDate(resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate);
-        return dateData.year;
-      }
-      // Separate education start/end fields
-      case 'educationStartMonth': {
-        const dateData = parseDate(resumeData.education?.[0]?.startDate);
-        return dateData.month;
-      }
-      case 'educationStartYear': {
-        const dateData = parseDate(resumeData.education?.[0]?.startDate);
-        return dateData.year;
-      }
-      case 'educationEndMonth': {
-        const dateData = parseDate(resumeData.education?.[0]?.endDate);
-        return dateData.month;
-      }
-      case 'educationEndYear': {
-        const dateData = parseDate(resumeData.education?.[0]?.endDate);
-        return dateData.year;
-      }
       
       // Secondary education
       case 'school2':
@@ -658,6 +545,8 @@
         return Array.isArray(resumeData.skills) ? resumeData.skills.join(', ') : resumeData.skills;
       case 'coverLetter':
         return resumeData.coverLetter;
+      case 'hobbiesInterests':
+        return resumeData.hobbiesInterests || personal.hobbiesInterests;
       
       // SSN / National ID (handle carefully - only fill if explicitly provided)
       case 'ssn':
@@ -678,19 +567,40 @@
       // For select elements, try to find matching option
       fillSelect(element, value);
     } else if (type === 'checkbox') {
-      // For checkboxes, handle both boolean values and string matching
-      fillCheckbox(element, value);
+      // For checkboxes - handle both boolean and string values
+      const valueStr = String(value).toLowerCase();
+      element.checked = !!value && valueStr !== 'no' && valueStr !== 'false';
+      element.dispatchEvent(new Event('change', { bubbles: true }));
     } else if (type === 'radio') {
-      // For radio buttons, match by value or label
-      fillRadio(element, value);
+      // For radio buttons
+      if (value && element.value.toLowerCase() === value.toString().toLowerCase()) {
+        element.checked = true;
+        element.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     } else {
-      // For text inputs and textareas
-      element.value = value;
+      // For text inputs and textareas - use native setters for React compatibility
+      if (tagName === 'input' && nativeInputValueSetter) {
+        nativeInputValueSetter.call(element, value);
+      } else if (tagName === 'textarea' && nativeTextareaValueSetter) {
+        nativeTextareaValueSetter.call(element, value);
+      } else {
+        element.value = value;
+      }
       
-      // Trigger events to ensure the form recognizes the change
+      // Trigger comprehensive events to ensure the form recognizes the change
+      // This is important for React/Angular apps
       element.dispatchEvent(new Event('input', { bubbles: true }));
       element.dispatchEvent(new Event('change', { bubbles: true }));
       element.dispatchEvent(new Event('blur', { bubbles: true }));
+      
+      // Dispatch synthetic keydown event to trigger framework event handlers
+      // This is NOT simulating real keyboard input, just ensuring any keydown listeners
+      // are notified of the change (using arbitrary key defined at top of file)
+      element.dispatchEvent(new KeyboardEvent('keydown', {
+        key: TRIGGER_KEY,
+        code: TRIGGER_KEY_CODE,
+        bubbles: true
+      }));
     }
     
     // Visual feedback
@@ -700,79 +610,6 @@
     }, 2000);
   }
 
-  function fillCheckbox(element, value) {
-    // Handle boolean values directly
-    if (typeof value === 'boolean') {
-      element.checked = value;
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-      return;
-    }
-    
-    // Handle string values - need to match against checkbox value or label
-    const valueStr = value.toString().toLowerCase();
-    const elementValue = element.value ? element.value.toLowerCase() : '';
-    const label = findLabelForElement(element);
-    const labelLower = label ? label.toLowerCase() : '';
-    
-    // Check if the value matches the checkbox value or label
-    if (matchesValue(valueStr, elementValue) || matchesValue(valueStr, labelLower)) {
-      element.checked = true;
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-      return;
-    }
-    
-    // Handle Yes/No/True/False type values for boolean-like checkboxes
-    const positiveValues = ['yes', 'true', '1', 'on', 'checked'];
-    if (positiveValues.includes(valueStr)) {
-      element.checked = true;
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }
-
-  function fillRadio(element, value) {
-    if (!value) return;
-    
-    const valueStr = value.toString().toLowerCase();
-    const elementValue = element.value ? element.value.toLowerCase() : '';
-    const label = findLabelForElement(element);
-    const labelLower = label ? label.toLowerCase() : '';
-    
-    // Check if the value matches the radio button value or its label
-    if (matchesValue(valueStr, elementValue) || matchesValue(valueStr, labelLower)) {
-      element.checked = true;
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }
-
-  function matchesValue(dataValue, elementValue) {
-    if (!dataValue || !elementValue) return false;
-    
-    // Exact match
-    if (dataValue === elementValue) return true;
-    
-    // Define equivalent value groups for demographic fields
-    // Each array contains values that should be considered equivalent
-    const equivalentGroups = [
-      // Gender values
-      ['m', 'male', 'man', 'masculine'],
-      ['f', 'female', 'woman', 'feminine'],
-      ['nb', 'nonbinary', 'non-binary', 'non binary', 'x', 'genderqueer'],
-      ['prefer not to say', 'prefer not', 'decline', 'decline to state', 'undisclosed', 'not disclosed'],
-      // Yes/No values
-      ['yes', 'y', 'true', '1'],
-      ['no', 'n', 'false', '0']
-    ];
-    
-    // Check if dataValue and elementValue belong to the same equivalence group
-    for (const group of equivalentGroups) {
-      const dataInGroup = group.some(v => v === dataValue);
-      const elemInGroup = group.some(v => v === elementValue);
-      if (dataInGroup && elemInGroup) return true;
-    }
-    
-    return false;
-  }
-
   function fillSelect(selectElement, value) {
     // Try exact match first
     for (let option of selectElement.options) {
@@ -780,52 +617,6 @@
         selectElement.value = option.value;
         selectElement.dispatchEvent(new Event('change', { bubbles: true }));
         return;
-      }
-    }
-    
-    // Check if this is a month dropdown - try to match month number with month name
-    const monthNumber = parseInt(value, 10);
-    if (monthNumber >= 1 && monthNumber <= 12) {
-      const fullMonthName = MONTH_NAMES[monthNumber - 1];
-      const shortMonthName = SHORT_MONTH_NAMES[monthNumber - 1];
-      
-      for (let option of selectElement.options) {
-        const optionTextLower = option.text.toLowerCase().trim();
-        const optionValueLower = option.value.toLowerCase().trim();
-        
-        // Match by full month name, short month name, or month number
-        if (optionTextLower === fullMonthName || 
-            optionTextLower === shortMonthName ||
-            optionTextLower.startsWith(shortMonthName) ||
-            optionValueLower === String(monthNumber) ||
-            optionValueLower === String(monthNumber).padStart(2, '0') ||
-            option.value === String(monthNumber) ||
-            option.value === String(monthNumber).padStart(2, '0')) {
-          selectElement.value = option.value;
-          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-          return;
-        }
-      }
-    }
-    
-    // Check if this looks like a country code dropdown (for phone)
-    // Country code dropdowns typically have options like "+1", "1", "US (+1)", etc.
-    if (value && value.startsWith('+')) {
-      const codeWithoutPlus = value.substring(1);
-      for (let option of selectElement.options) {
-        const optionText = option.text;
-        const optionValue = option.value;
-        
-        // Match +1, 1, US (+1), United States (+1), etc.
-        if (optionValue === value || 
-            optionValue === codeWithoutPlus ||
-            optionText.includes(value) ||
-            optionText.includes('(' + value + ')') ||
-            optionText.includes('(+' + codeWithoutPlus + ')')) {
-          selectElement.value = option.value;
-          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
-          return;
-        }
       }
     }
     
@@ -845,5 +636,5 @@
   }
 
   // Console log to confirm script is loaded
-  console.log('Resume AutoFill content script loaded');
+  console.log('Resume AutoFill content script loaded (with Shadow DOM support)');
 })();
