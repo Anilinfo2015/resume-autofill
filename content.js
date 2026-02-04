@@ -253,9 +253,9 @@
       return 100;
     }
     
-    // Special handling for known short patterns that are unambiguous (like 'gpa', 'dob', 'ssn')
+    // Special handling for known short patterns that are unambiguous (like 'gpa', 'dob', 'ssn', 'ice')
     // These are specific enough to be matched even though they're short
-    const unambiguousShortPatterns = ['gpa', 'dob', 'ssn'];
+    const unambiguousShortPatterns = ['gpa', 'dob', 'ssn', 'ice'];
     const isUnambiguousShort = unambiguousShortPatterns.includes(normalizedPattern);
     
     // Check if identifier contains the pattern
@@ -266,7 +266,8 @@
       if (normalizedPattern.length >= MIN_PATTERN_LENGTH || isUnambiguousShort) {
         // Score based on how much of the identifier is covered by the pattern
         // Longer patterns relative to identifier length get higher scores
-        const coverage = normalizedPattern.length / normalizedIdentifier.length;
+        // Cap coverage at 1.0 to keep score in documented range
+        const coverage = Math.min(1, normalizedPattern.length / normalizedIdentifier.length);
         return 50 + (coverage * 40); // Score range: 50-90
       }
     }
@@ -277,7 +278,8 @@
     const MIN_REVERSE_MATCH_LENGTH = 6;
     if (normalizedPattern.includes(normalizedIdentifier)) {
       if (normalizedIdentifier.length >= MIN_REVERSE_MATCH_LENGTH) {
-        const coverage = normalizedIdentifier.length / normalizedPattern.length;
+        // Cap coverage at 1.0 to keep score in documented range
+        const coverage = Math.min(1, normalizedIdentifier.length / normalizedPattern.length);
         return 30 + (coverage * 30); // Score range: 30-60
       }
     }
