@@ -11,6 +11,13 @@ chrome.runtime.onInstalled.addListener(() => {
       console.log('Resume data loaded successfully');
     }
   });
+
+  // Create context menu
+  chrome.contextMenus.create({
+    id: 'fillForm',
+    title: 'Fill form with resume data',
+    contexts: ['editable']
+  });
 });
 
 // Listen for messages from popup or content scripts
@@ -23,15 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Context menu integration (optional)
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: 'fillForm',
-    title: 'Fill form with resume data',
-    contexts: ['editable']
-  });
-});
-
+// Context menu click handler
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'fillForm') {
     chrome.storage.sync.get(['resumeData'], (result) => {
