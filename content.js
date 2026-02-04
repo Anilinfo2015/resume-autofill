@@ -12,16 +12,20 @@
     fullName: ['name', 'fullname', 'full_name', 'your name', 'applicant'],
     email: ['email', 'e-mail', 'mail', 'emailaddress'],
     phone: ['phone', 'mobile', 'telephone', 'tel', 'contact', 'cell', 'phonenumber'],
+    // Phone country code / extension (dropdown or separate field)
+    phoneCountryCode: ['countrycode', 'country_code', 'phonecode', 'phone_code', 'dialcode', 'dial_code', 'extension', 'ext', 'phone_extension', 'phoneextension', 'isdcode', 'isd_code', 'areacode', 'area_code', 'prefix'],
+    // Phone number without country code (local number)
+    phoneLocal: ['phonelocal', 'phone_local', 'localnumber', 'local_number', 'nationalphone', 'national_phone', 'localphonenumber', 'local_phone_number'],
     address: ['address', 'street', 'address1', 'addr', 'streetaddress'],
     addressLine2: ['address2', 'apt', 'suite', 'unit', 'apartment'],
     city: ['city', 'town', 'municipality'],
     state: ['state', 'province', 'region'],
     zipCode: ['zip', 'postal', 'postcode', 'zipcode', 'postalcode'],
     country: ['country', 'nation', 'countryofresidence'],
-    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl'],
-    website: ['website', 'site', 'webpage', 'url', 'homepage', 'personalsite'],
-    portfolio: ['portfolio', 'work samples', 'worksamples', 'portfoliourl'],
-    github: ['github', 'git', 'githubprofile', 'githuburl'],
+    linkedin: ['linkedin', 'linked-in', 'linkedinprofile', 'linkedinurl', 'linkedinlink'],
+    website: ['website', 'site', 'webpage', 'url', 'homepage', 'personalsite', 'personalurl', 'personalwebsite'],
+    portfolio: ['portfolio', 'work samples', 'worksamples', 'portfoliourl', 'portfoliolink', 'portfoliosite', 'workportfolio'],
+    github: ['github', 'git', 'githubprofile', 'githuburl', 'githublink', 'gitprofile'],
     dateOfBirth: ['dob', 'dateofbirth', 'birth', 'birthday', 'birthdate'],
     
     // Work Experience
@@ -29,6 +33,12 @@
     position: ['position', 'title', 'job title', 'jobtitle', 'role', 'designation', 'jobposition', 'currenttitle'],
     startDate: ['start', 'from', 'begin', 'commenced', 'startdate', 'datefrom'],
     endDate: ['end', 'to', 'until', 'finished', 'enddate', 'dateto'],
+    // Separate month and year fields for start date
+    startMonth: ['startmonth', 'start_month', 'frommonth', 'from_month', 'beginmonth', 'begin_month'],
+    startYear: ['startyear', 'start_year', 'fromyear', 'from_year', 'beginyear', 'begin_year'],
+    // Separate month and year fields for end date
+    endMonth: ['endmonth', 'end_month', 'tomonth', 'to_month', 'untilmonth', 'until_month'],
+    endYear: ['endyear', 'end_year', 'toyear', 'to_year', 'untilyear', 'until_year'],
     current: ['current', 'present', 'ongoing', 'currentlyworking', 'currentjob'],
     workDescription: ['jobdescription', 'responsibilities', 'duties', 'workdescription', 'jobduties'],
     
@@ -42,6 +52,14 @@
     major: ['major', 'field', 'study', 'specialization', 'concentration', 'fieldofstudy', 'areaof'],
     gpa: ['gpa', 'grade', 'grades', 'gradepoint', 'cgpa'],
     graduationDate: ['graduation', 'graduated', 'completion', 'graduationdate', 'graduationyear'],
+    // Separate month and year fields for graduation date
+    graduationMonth: ['graduationmonth', 'graduation_month', 'completionmonth', 'completion_month'],
+    graduationYear: ['graduationyear', 'graduation_year', 'completionyear', 'completion_year', 'classof', 'class_of'],
+    // Separate education start/end fields
+    educationStartMonth: ['educationstartmonth', 'education_start_month'],
+    educationStartYear: ['educationstartyear', 'education_start_year'],
+    educationEndMonth: ['educationendmonth', 'education_end_month'],
+    educationEndYear: ['educationendyear', 'education_end_year'],
     
     // Secondary education
     school2: ['highschool', 'high school', 'secondaryschool', 'school2'],
@@ -102,6 +120,119 @@
     ssn: ['ssn', 'socialsecurity', 'social security'],
     nationalId: ['nationalid', 'idnumber', 'governmentid']
   };
+
+  // Helper function to parse phone number into country code and local number
+  function parsePhoneNumber(phone) {
+    if (!phone) return { countryCode: null, localNumber: null };
+    
+    // Remove all non-digit characters except leading +
+    let cleaned = phone.trim();
+    
+    // Check if it starts with a + (explicit country code indicator)
+    if (cleaned.startsWith('+')) {
+      const countryCodeMatch = cleaned.match(/^\+(\d{1,3})[-.\s]?(.*)$/);
+      
+      if (countryCodeMatch) {
+        const potentialCode = countryCodeMatch[1];
+        const rest = countryCodeMatch[2].replace(/[-.\s()]/g, '');
+        
+        // Country codes are 1-3 digits; if remaining is >= 7 digits, treat as country code
+        if (rest.length >= 7) {
+          return {
+            countryCode: '+' + potentialCode,
+            localNumber: rest.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
+          };
+        }
+      }
+    }
+    
+    // No country code detected - return the phone number as local number
+    const digits = phone.replace(/\D/g, '');
+    // Format as XXX-XXX-XXXX if it's 10 digits (US format without country code)
+    if (digits.length === 10) {
+      return {
+        countryCode: null,
+        localNumber: digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3')
+      };
+    }
+    // Otherwise return as-is (with any formatting preserved)
+    return {
+      countryCode: null,
+      localNumber: phone.replace(/^\+\d{1,3}[-.\s]?/, '').trim() || phone
+    };
+  }
+
+  // Helper function to parse date into month and year
+  function parseDate(dateStr) {
+    if (!dateStr) return { month: null, year: null };
+    
+    // Handle "Present" or similar
+    const lowerDate = dateStr.toLowerCase();
+    if (lowerDate === 'present' || lowerDate === 'current' || lowerDate === 'ongoing') {
+      return { month: null, year: null, isPresent: true };
+    }
+    
+    // Try to parse YYYY-MM format
+    const yyyyMmMatch = dateStr.match(/^(\d{4})[-/](\d{1,2})$/);
+    if (yyyyMmMatch) {
+      return {
+        year: yyyyMmMatch[1],
+        month: yyyyMmMatch[2].padStart(2, '0')
+      };
+    }
+    
+    // Try to parse MM/YYYY format
+    const mmYyyyMatch = dateStr.match(/^(\d{1,2})[-/](\d{4})$/);
+    if (mmYyyyMatch) {
+      return {
+        month: mmYyyyMatch[1].padStart(2, '0'),
+        year: mmYyyyMatch[2]
+      };
+    }
+    
+    // Try to parse just a year
+    const yearMatch = dateStr.match(/^\d{4}$/);
+    if (yearMatch) {
+      return {
+        year: dateStr,
+        month: null
+      };
+    }
+    
+    // Try to parse Month Year format (e.g., "January 2020")
+    const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                        'july', 'august', 'september', 'october', 'november', 'december'];
+    const shortMonthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    
+    const monthYearMatch = dateStr.match(/^([a-zA-Z]+)\s+(\d{4})$/);
+    if (monthYearMatch) {
+      const monthName = monthYearMatch[1].toLowerCase();
+      let monthIndex = monthNames.indexOf(monthName);
+      if (monthIndex === -1) {
+        monthIndex = shortMonthNames.indexOf(monthName.substring(0, 3));
+      }
+      if (monthIndex !== -1) {
+        return {
+          month: String(monthIndex + 1).padStart(2, '0'),
+          year: monthYearMatch[2]
+        };
+      }
+    }
+    
+    return { month: null, year: null };
+  }
+
+  // Helper function to get month name from month number
+  function getMonthName(monthNum) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    const num = parseInt(monthNum, 10);
+    if (num >= 1 && num <= 12) {
+      return months[num - 1];
+    }
+    return null;
+  }
 
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -217,8 +348,29 @@
   }
 
   function matchFieldToData(identifiers, resumeData) {
-    // Try to match field identifiers with resume data patterns
-    for (const [dataKey, patterns] of Object.entries(FIELD_PATTERNS)) {
+    // First, try exact matches (more specific patterns first)
+    // This helps avoid false positives where "phone" matches a country code field
+    
+    // Define priority order - more specific patterns should be checked first
+    const priorityOrder = [
+      // Most specific phone patterns first
+      'phoneCountryCode', 'phoneLocal',
+      // Most specific date patterns first  
+      'startMonth', 'startYear', 'endMonth', 'endYear',
+      'graduationMonth', 'graduationYear',
+      'educationStartMonth', 'educationStartYear', 'educationEndMonth', 'educationEndYear',
+      // Then the more general patterns
+      ...Object.keys(FIELD_PATTERNS).filter(k => 
+        !['phoneCountryCode', 'phoneLocal', 'startMonth', 'startYear', 'endMonth', 'endYear',
+          'graduationMonth', 'graduationYear', 'educationStartMonth', 'educationStartYear', 
+          'educationEndMonth', 'educationEndYear'].includes(k)
+      )
+    ];
+    
+    for (const dataKey of priorityOrder) {
+      const patterns = FIELD_PATTERNS[dataKey];
+      if (!patterns) continue;
+      
       for (const identifier of identifiers) {
         for (const pattern of patterns) {
           if (identifier.includes(pattern) || pattern.includes(identifier)) {
@@ -251,6 +403,16 @@
       case 'fullName': return personal.fullName || `${personal.firstName || ''} ${personal.lastName || ''}`.trim();
       case 'email': return personal.email;
       case 'phone': return personal.phone || personal.mobile;
+      // Phone country code (for dropdown or separate field)
+      case 'phoneCountryCode': {
+        const phoneData = parsePhoneNumber(personal.phone || personal.mobile);
+        return phoneData.countryCode;
+      }
+      // Phone local number (without country code)
+      case 'phoneLocal': {
+        const phoneData = parsePhoneNumber(personal.phone || personal.mobile);
+        return phoneData.localNumber;
+      }
       case 'address': return personal.address;
       case 'addressLine2': return personal.addressLine2 || personal.apt || personal.suite;
       case 'city': return personal.city;
@@ -272,6 +434,26 @@
         return resumeData.workExperience?.[0]?.startDate;
       case 'endDate':
         return resumeData.workExperience?.[0]?.endDate;
+      // Separate month and year for work experience start date
+      case 'startMonth': {
+        const dateData = parseDate(resumeData.workExperience?.[0]?.startDate);
+        return dateData.month;
+      }
+      case 'startYear': {
+        const dateData = parseDate(resumeData.workExperience?.[0]?.startDate);
+        return dateData.year;
+      }
+      // Separate month and year for work experience end date
+      case 'endMonth': {
+        const dateData = parseDate(resumeData.workExperience?.[0]?.endDate);
+        if (dateData.isPresent) return null; // Don't fill if current
+        return dateData.month;
+      }
+      case 'endYear': {
+        const dateData = parseDate(resumeData.workExperience?.[0]?.endDate);
+        if (dateData.isPresent) return null; // Don't fill if current
+        return dateData.year;
+      }
       case 'current':
         return resumeData.workExperience?.[0]?.current;
       case 'workDescription':
@@ -294,6 +476,32 @@
         return resumeData.education?.[0]?.gpa;
       case 'graduationDate':
         return resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate;
+      // Separate month and year for graduation date
+      case 'graduationMonth': {
+        const dateData = parseDate(resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate);
+        return dateData.month;
+      }
+      case 'graduationYear': {
+        const dateData = parseDate(resumeData.education?.[0]?.graduationDate || resumeData.education?.[0]?.endDate);
+        return dateData.year;
+      }
+      // Separate education start/end fields
+      case 'educationStartMonth': {
+        const dateData = parseDate(resumeData.education?.[0]?.startDate);
+        return dateData.month;
+      }
+      case 'educationStartYear': {
+        const dateData = parseDate(resumeData.education?.[0]?.startDate);
+        return dateData.year;
+      }
+      case 'educationEndMonth': {
+        const dateData = parseDate(resumeData.education?.[0]?.endDate);
+        return dateData.month;
+      }
+      case 'educationEndYear': {
+        const dateData = parseDate(resumeData.education?.[0]?.endDate);
+        return dateData.year;
+      }
       
       // Secondary education
       case 'school2':
@@ -453,6 +661,56 @@
         selectElement.value = option.value;
         selectElement.dispatchEvent(new Event('change', { bubbles: true }));
         return;
+      }
+    }
+    
+    // Check if this is a month dropdown - try to match month number with month name
+    const monthNumber = parseInt(value, 10);
+    if (monthNumber >= 1 && monthNumber <= 12) {
+      const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
+                          'july', 'august', 'september', 'october', 'november', 'december'];
+      const shortMonthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                                'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const fullMonthName = monthNames[monthNumber - 1];
+      const shortMonthName = shortMonthNames[monthNumber - 1];
+      
+      for (let option of selectElement.options) {
+        const optionTextLower = option.text.toLowerCase().trim();
+        const optionValueLower = option.value.toLowerCase().trim();
+        
+        // Match by full month name, short month name, or month number
+        if (optionTextLower === fullMonthName || 
+            optionTextLower === shortMonthName ||
+            optionTextLower.startsWith(shortMonthName) ||
+            optionValueLower === String(monthNumber) ||
+            optionValueLower === String(monthNumber).padStart(2, '0') ||
+            option.value === String(monthNumber) ||
+            option.value === String(monthNumber).padStart(2, '0')) {
+          selectElement.value = option.value;
+          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
+      }
+    }
+    
+    // Check if this looks like a country code dropdown (for phone)
+    // Country code dropdowns typically have options like "+1", "1", "US (+1)", etc.
+    if (value && value.startsWith('+')) {
+      const codeWithoutPlus = value.substring(1);
+      for (let option of selectElement.options) {
+        const optionText = option.text;
+        const optionValue = option.value;
+        
+        // Match +1, 1, US (+1), United States (+1), etc.
+        if (optionValue === value || 
+            optionValue === codeWithoutPlus ||
+            optionText.includes(value) ||
+            optionText.includes('(' + value + ')') ||
+            optionText.includes('(+' + codeWithoutPlus + ')')) {
+          selectElement.value = option.value;
+          selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+          return;
+        }
       }
     }
     

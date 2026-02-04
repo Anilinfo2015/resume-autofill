@@ -94,6 +94,8 @@ The extension recognizes many variations of field names, including:
 **Contact:**
 - email, e-mail, mail, email address
 - phone, mobile, telephone, tel, cell, contact number
+- phone country code, dial code, extension, prefix (for country code dropdowns)
+- phone local number (for phone number without country code)
 
 **Location:**
 - address, street, address1, address line 2, apt, suite
@@ -107,6 +109,8 @@ The extension recognizes many variations of field names, including:
 - position, title, job title, role, designation
 - start date, from, begin
 - end date, to, until
+- start month, start year (for separate month/year dropdowns)
+- end month, end year (for separate month/year dropdowns)
 - current, present, ongoing
 - previous company, previous position (for second job entries)
 
@@ -116,6 +120,7 @@ The extension recognizes many variations of field names, including:
 - major, field, field of study, specialization
 - gpa, grade
 - graduation date, graduated
+- graduation month, graduation year (for separate month/year dropdowns)
 
 **Social/Professional:**
 - linkedin, linked-in
