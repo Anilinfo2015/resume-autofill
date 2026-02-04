@@ -1,0 +1,92 @@
+name: Build Chrome Extension
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create extension zip
+        run: |
+          mkdir -p dist
+          zip -r dist/resume-autofill-${{ steps.get_version.outputs.version }}.zip \
+            manifest.json \
+            background.js \
+            content.js \
+            popup.html \
+            popup.css \
+            popup.js \
+            icons/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-autofill-extension
+          path: dist/resume-autofill-*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: resume-autofill-extension
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Resume AutoFill v${{ steps.get_version.outputs.version }}
+          body: |
+            ## Resume AutoFill Chrome Extension v${{ steps.get_version.outputs.version }}
+            
+            ### Installation
+            1. Download the `resume-autofill-${{ steps.get_version.outputs.version }}.zip` file
+            2. Extract the ZIP file to a folder
+            3. Open Chrome and go to `chrome://extensions/`
+            4. Enable "Developer mode" (toggle in top right)
+            5. Click "Load unpacked" and select the extracted folder
+            
+            ### What's included
+            - Chrome extension for automatically filling job application forms
+            - Support for JSON-based resume data
+          files: dist/resume-autofill-*.zip
+          draft: false
+          prerelease: false
