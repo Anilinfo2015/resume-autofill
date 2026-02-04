@@ -218,21 +218,37 @@
 
   function matchFieldToData(identifiers, resumeData) {
     // Try to match field identifiers with resume data patterns
+    // Find the best match by preferring longer/more specific pattern matches
+    let bestMatch = null;
+    let bestMatchScore = 0;
+    
     for (const [dataKey, patterns] of Object.entries(FIELD_PATTERNS)) {
       for (const identifier of identifiers) {
         for (const pattern of patterns) {
-          if (identifier.includes(pattern) || pattern.includes(identifier)) {
-            // Found a match, now get the actual data
+          let score = 0;
+          
+          if (identifier.includes(pattern)) {
+            // Pattern is found within the identifier - good match
+            // Score based on pattern length (longer patterns are more specific)
+            score = pattern.length * 2;
+          } else if (pattern.includes(identifier)) {
+            // Identifier is found within the pattern - weaker match
+            // Only use this if the identifier is reasonably long
+            score = identifier.length;
+          }
+          
+          if (score > bestMatchScore) {
             const value = getResumeValue(dataKey, resumeData);
             if (value !== null && value !== undefined) {
-              return value;
+              bestMatch = value;
+              bestMatchScore = score;
             }
           }
         }
       }
     }
     
-    return null;
+    return bestMatch;
   }
 
   function getResumeValue(key, resumeData) {
