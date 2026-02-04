@@ -1,4 +1,7 @@
 // Popup script for managing resume data and triggering form fill
+// Note: Uses chrome.storage.local instead of chrome.storage.sync to avoid
+// quota limits (sync has 8KB per-item limit). Resume data is stored locally
+// per device and will need to be loaded on each device separately.
 
 document.addEventListener('DOMContentLoaded', function() {
   const fileInput = document.getElementById('fileInput');
@@ -49,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Fill form button
   fillFormBtn.addEventListener('click', function() {
-    chrome.storage.sync.get(['resumeData'], function(result) {
+    chrome.storage.local.get(['resumeData'], function(result) {
       if (!result.resumeData) {
         showStatus('Please load resume data first!', 'error');
         return;
@@ -77,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Clear data button
   clearDataBtn.addEventListener('click', function() {
     if (confirm('Are you sure you want to clear all resume data?')) {
-      chrome.storage.sync.remove('resumeData', function() {
+      chrome.storage.local.remove('resumeData', function() {
         showStatus('Resume data cleared', 'info');
         dataPreview.style.display = 'none';
       });
@@ -87,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Helper functions
   function saveResumeData(data) {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.set({resumeData: data}, function() {
+      chrome.storage.local.set({resumeData: data}, function() {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
         } else {
@@ -98,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function loadCurrentData(showCacheMessage = false) {
-    chrome.storage.sync.get(['resumeData'], function(result) {
+    chrome.storage.local.get(['resumeData'], function(result) {
       if (result.resumeData) {
         displayDataPreview(result.resumeData);
         if (showCacheMessage) {
