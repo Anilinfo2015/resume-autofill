@@ -141,6 +141,7 @@
           },
           "endDate": {
             "type": "string",
+            "pattern": "^(\\d{4}-(0[1-9]|1[0-2])|Present)$",
             "description": "End date in YYYY-MM format, or 'Present' if currently employed",
             "examples": ["Present", "2019-12"]
           },
@@ -306,6 +307,5 @@
       "examples": ["Available upon request"]
     }
   },
-  "required": ["personal"],
-  "additionalProperties": false
+  "required": ["personal"]
 }
